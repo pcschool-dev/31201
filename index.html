@@ -68,7 +68,10 @@
             
             navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false })
             .then(function(stream) {
-                document.getElementById('webcam-video').srcObject = stream;
+                let video = document.getElementById('webcam-video');
+                video.srcObject = stream;
+                video.play(); // 🟢 เพิ่มบรรทัดนี้ เพื่อบังคับให้ภาพกล้องเล่น
+                
                 document.getElementById('hud-name').innerText = player.name;
                 document.getElementById('hud-team').innerText = player.team;
                 document.getElementById('setup-screen').style.display = 'none';
