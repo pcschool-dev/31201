@@ -1,77 +1,145 @@
 <!DOCTYPE html>
-<html lang="th">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบส่งงานนักเรียน @ โรงเรียนปากช่อง | 2569</title>
-    <link rel="icon" type="image/x-icon" href="Logo.png"> 
-    <script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs" type="module"></script>
-<style>
-        iframe {
-            position: absolute;
-            top: 0px;
-            left: 0px;
-            width: 100%;
-            height: 100%;
-            border:none;
-        }
-	#loading { 
-	  position: fixed; 
-	  top: 0; 
-	  left: 0; 
-	  width: 100%; 
-	  height: 100VH; 	 
-	  z-index: 9999; /* Place loader on top of other content */ 
-	} 
-	 
-	.loader { 
-	  margin: auto; 	  
-	}
-</style>
+    <meta charset="utf-8">
+    <title>AR Physics Projectile</title>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: sans-serif; background: #000; }
+        #webcam-video { position: fixed; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; }
+        a-scene { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        #setup-screen { position: fixed; top:0; left:0; width:100%; height:100%; background:#1e293b; z-index:999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .ui-panel { position: absolute; z-index: 100; padding: 12px; background: rgba(15, 23, 42, 0.85); border-radius: 8px; margin: 10px; border: 1px solid #3b82f6; color: white;}
+        .hud-top { top: 10px; left: 10px; right: 10px; display: flex; justify-content: space-between; }
+        .hud-controls { bottom: 10px; left: 10px; right: 10px; }
+        .control-group { display: inline-block; margin-right: 15px; margin-bottom: 5px;}
+        label { display: block; font-size: 11px; color: #94a3b8; }
+        input[type=range] { width: 90px; }
+        button { background: #10b981; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top:5px; }
+    </style>
 </head>
-<!-- <body>  -->
-<body onload="preLoading()">
-	<div style="display:none;" align="center" id="FBloading" >
-		<h4>โปรดเปิดด้วย เบราว์เซอร์ภายนอก <br>Please open in external browser.</h4>	    
-    	</div> 
-	<div align="center" id="loading" >
-	    <dotlottie-player src="https://lottie.host/ad611fa5-1ac9-4e70-b49f-0903ffac9450/TGjBqekBME.lottie" background="transparent" speed="1" style="width: 300px; height: 300px" loop autoplay></dotlottie-player>
-	</div>
-	
-    <iframe style="display:none" id="link"  enctype="multipart/form-data" scrolling="auto"  src="https://script.google.com/a/macros/pcschool.ac.th/s/AKfycbywUa6sk1aphvYdPk3agjABdxkBPnRcvaxSFsCZXPQPa_eM-YE2xyHTVVjhZrgKCYpa/exec"></iframe>
-    <script type="text/javascript">
-        let preloader = document.getElementById("loading");
-	let FBloading = document.getElementById("FBloading");
-	let link = document.getElementById("link");
-	let idUID = window.location.search;
-	let param = new URLSearchParams(idUID);
-	let id = param.get('fbclid');
-	let x;
-	console.log(id)		    
-	    if(id){
-		preloader.style.display = 'none';
-		FBloading.style.display = 'block';
-		let countDownDate = new Date(Date.now() + 15000).getTime();   	
-		x =  setInterval(function(){
-			let now = new Date().getTime();
-			let distance = countDownDate - now;                
-			let seconds = Math.floor((distance % (1000 * 60)) / 1000);
-			if(seconds == 13){
-			    FBloading.innerHTML = `<iframe  scrolling="auto"  src="openExternalBrowser.mp4"></iframe>`
-			} else if(seconds <= 0){
-			    clearInterval(x);
-			    window.location.href = 'https://pcschool-dev.github.io/31201'
-			}  				
-		}, 1000);
-		
-	    } else {			
-		link.style.display = 'block';    
-	    }	
-	function preLoading(){ //ซ่อน loading
-		preloader.style.display = 'none';
-	};
-	
+<body>
+    <video id="webcam-video" autoplay playsinline></video>
+
+    <div id="setup-screen">
+        <h2 style="color:white;">🚀 AR Physics: Projectile Strike</h2>
+        <input type="text" id="p-name" placeholder="ชื่อผู้เล่น" style="padding:10px; margin-bottom:10px; width:200px;">
+        <input type="text" id="p-team" placeholder="ชื่อทีม" style="padding:10px; margin-bottom:15px; width:200px;">
+        <button onclick="initARAndStart()">เปิดกล้อง & เข้าสู่โลก AR</button>
+    </div>
+
+    <div class="ui-panel hud-top">
+        <div>👤 <span id="hud-name">-</span> | 🚩 <span id="hud-team">-</span></div>
+        <div>🏆 คะแนน: <span id="hud-score">0</span> | 💣 กระสุน: <span id="hud-ammo">5</span></div>
+    </div>
+
+    <div class="ui-panel hud-controls">
+        <div class="control-group">
+            <label>ความเร็วต้น v₀: <span id="v-val">15</span> m/s</label>
+            <input type="range" id="param-v" min="5" max="30" value="15" oninput="updateHUD()">
+        </div>
+        <div class="control-group">
+            <label>มุมยิง &theta;: <span id="ang-val">45</span>&deg;</label>
+            <input type="range" id="param-ang" min="10" max="85" value="45" oninput="updateHUD()">
+        </div>
+        <div class="control-group">
+            <label>มวลกระสุน m: <span id="m-val">1.0</span> kg</label>
+            <input type="range" id="param-m" min="0.2" max="5.0" step="0.1" value="1.0" oninput="updateHUD()">
+        </div>
+        <div>
+            <button onclick="fireProjectile()" style="background:#ef4444;">🚀 ยิง!</button>
+            <button onclick="saveAndExit()" style="background:#3b82f6;">💾 เซฟคะแนน</button>
+        </div>
+    </div>
+
+    <a-scene embedded vr-mode-ui="enabled: false" style="background: transparent;">
+        <a-camera id="camera" position="0 1.6 0" look-controls="enabled: false"></a-camera>
+        <a-sphere id="target" position="0 2 -12" radius="1.0" color="#10b981"></a-sphere>
+        <a-box id="projectile" position="0 -10 0" radius="0.3" color="#ef4444"></a-box>
+    </a-scene>
+
+    <script>
+        let config = { score: 0, ammo: 5 };
+        let player = { name: "", team: "" };
+
+        function initARAndStart() {
+            player.name = document.getElementById('p-name').value || "ไม่ระบุชื่อ";
+            player.team = document.getElementById('p-team').value || "No Team";
+            
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false })
+            .then(function(stream) {
+                document.getElementById('webcam-video').srcObject = stream;
+                document.getElementById('hud-name').innerText = player.name;
+                document.getElementById('hud-team').innerText = player.team;
+                document.getElementById('setup-screen').style.display = 'none';
+            })
+            .catch(function(err) {
+                alert("ไม่สามารถเปิดกล้องได้ ทดสอบเล่นแบบพื้นหลังดำแทน");
+                document.getElementById('hud-name').innerText = player.name;
+                document.getElementById('hud-team').innerText = player.team;
+                document.getElementById('setup-screen').style.display = 'none';
+            });
+        }
+
+        function updateHUD() {
+            document.getElementById('v-val').innerText = document.getElementById('param-v').value;
+            document.getElementById('ang-val').innerText = document.getElementById('param-ang').value;
+            document.getElementById('m-val').innerText = document.getElementById('param-m').value;
+        }
+
+        function fireProjectile() {
+            if(config.ammo <= 0) { alert("กระสุนหมด!"); return; }
+            config.ammo--;
+            document.getElementById('hud-ammo').innerText = config.ammo;
+
+            const v0 = parseFloat(document.getElementById('param-v').value);
+            const angleDeg = parseFloat(document.getElementById('param-ang').value);
+            const mass = parseFloat(document.getElementById('param-m').value);
+            const angleRad = (angleDeg * Math.PI) / 180;
+            const g = 9.81;
+            const k = 0.12; 
+            
+            let t = 0;
+            const projEl = document.getElementById('projectile');
+            projEl.setAttribute('position', '0 1.2 -1');
+
+            let interval = setInterval(() => {
+                t += 0.04;
+                let x = (mass * v0 * Math.cos(angleRad) / k) * (1 - Math.exp(-(k/mass)*t));
+                let y = ((mass / k) * (v0 * Math.sin(angleRad) + (mass*g/k)) * (1 - Math.exp(-(k/mass)*t))) - ((mass*g*t)/k) + 1.2;
+                let z = -x; 
+
+                projEl.setAttribute('position', `0 ${y} ${z}`);
+
+                let targetPos = document.getElementById('target').getAttribute('position');
+                let distance = Math.sqrt(Math.pow(y - targetPos.y, 2) + Math.pow(z - targetPos.z, 2));
+
+                if (distance < 1.5) { 
+                    clearInterval(interval);
+                    config.score += 500 + (config.ammo * 100); 
+                    document.getElementById('hud-score').innerText = config.score;
+                    alert("🎯 โดนเป้าหมาย!");
+                    projEl.setAttribute('position', '0 -10 0');
+                }
+
+                if (y < -3 || z < -40) { 
+                    clearInterval(interval);
+                    projEl.setAttribute('position', '0 -10 0');
+                }
+            }, 30);
+        }
+
+        function saveAndExit() {
+            document.getElementById('hud-score').innerText = "กำลังย้ายไปบันทึก...";
+            
+            // 🔴 สำคัญ: เปลี่ยนบรรทัดนี้ให้เป็นลิงก์ Google Apps Script ของคุณ 🔴
+            const gasUrl = "https://script.google.com/a/macros/pcschool.ac.th/s/AKfycbywUa6sk1aphvYdPk3agjABdxkBPnRcvaxSFsCZXPQPa_eM-YE2xyHTVVjhZrgKCYpa/exec";
+            
+            const saveUrl = `${gasUrl}?action=save&name=${encodeURIComponent(player.name)}&team=${encodeURIComponent(player.team)}&score=${config.score}&ammo=${config.ammo}`;
+            
+            // พาผู้เล่นวาร์ปไปบันทึกคะแนนที่ระบบ Google
+            window.location.href = saveUrl; 
+        }
     </script>
-</body>    
+</body>
 </html>
