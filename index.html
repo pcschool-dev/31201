@@ -610,7 +610,7 @@ const API_URL = (() => {
   try {
     const q = new URLSearchParams(location.search).get('api');
     if (q) { localStorage.setItem('gas_api_url', q); return q; }
-    return localStorage.getItem('gas_api_url') || ''; // ← หรือวาง URL /exec ตรงนี้ถาวร
+    return localStorage.getItem('gas_api_url') || 'https://script.google.com/a/macros/pcschool.ac.th/s/AKfycbwnaX0Ai5UvwLykCuK5tYLD9ojuEZnZVqHiHcN--_NZzckgCT9Vq9fbxLGH1X-6cWOy/exec'; // ← หรือวาง URL /exec ตรงนี้ถาวร
   } catch (e) { return ''; }
 })();
 
