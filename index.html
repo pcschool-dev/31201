@@ -1,0 +1,2084 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ============ AR PHYSICS LAB — Design System ============ */
+:root {
+  --bg0: #070b1a;
+  --bg1: #0d1330;
+  --glass: rgba(255,255,255,.07);
+  --glass2: rgba(255,255,255,.12);
+  --stroke: rgba(255,255,255,.14);
+  --txt: #f2f5ff;
+  --dim: #93a0c7;
+  --cyan: #22d3ee;
+  --violet: #a78bfa;
+  --pink: #f472b6;
+  --lime: #a3e635;
+  --amber: #fbbf24;
+  --red: #f87171;
+  --grad: linear-gradient(135deg, #22d3ee 0%, #a78bfa 55%, #f472b6 100%);
+  --shadow: 0 10px 40px rgba(0,0,0,.45);
+  --r-lg: 22px; --r-md: 16px; --r-sm: 10px;
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body { height:100%; overflow:hidden; }
+body {
+  font-family:'Prompt', system-ui, sans-serif;
+  background: radial-gradient(1200px 800px at 80% -10%, #1b2a6b55, transparent),
+              radial-gradient(900px 700px at -10% 110%, #6d28d955, transparent),
+              linear-gradient(180deg, var(--bg0), var(--bg1));
+  color:var(--txt);
+  user-select:none; -webkit-user-select:none;
+  position:fixed; inset:0;
+}
+
+/* ---------- screens ---------- */
+.screen { position:absolute; inset:0; display:none; flex-direction:column; overflow:hidden; }
+.screen.active { display:flex; animation:fadeIn .35s ease; }
+.screen.scrolly { overflow-y:auto; }
+@keyframes fadeIn { from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none} }
+.pad { padding:22px 20px calc(24px + env(safe-area-inset-bottom)); }
+
+/* ---------- typography ---------- */
+h1 { font-size:2rem; font-weight:800; letter-spacing:.5px; }
+h2 { font-size:1.3rem; font-weight:700; }
+.grad-text { background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.dim { color:var(--dim); font-size:.85rem; }
+.small { font-size:.75rem; }
+
+/* ---------- buttons ---------- */
+.btn {
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  border:none; border-radius:var(--r-md); cursor:pointer;
+  font-family:inherit; font-size:1.05rem; font-weight:600; color:#fff;
+  padding:15px 22px; width:100%;
+  background:var(--grad); background-size:200% 200%;
+  box-shadow:0 6px 24px #22d3ee44;
+  transition:transform .12s, filter .2s;
+}
+.btn:active { transform:scale(.97); filter:brightness(1.15); }
+.btn.ghost { background:var(--glass); border:1px solid var(--stroke); box-shadow:none; }
+.btn.danger { background:linear-gradient(135deg,#f87171,#f472b6); box-shadow:0 6px 24px #f8717133; }
+.btn.mini { width:auto; padding:9px 16px; font-size:.85rem; border-radius:999px; }
+.btn:disabled { opacity:.45; pointer-events:none; }
+
+/* ---------- glass cards ---------- */
+.card {
+  background:var(--glass); border:1px solid var(--stroke);
+  border-radius:var(--r-lg); padding:18px;
+  backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  box-shadow:var(--shadow);
+}
+
+/* ---------- inputs ---------- */
+.field { margin-bottom:14px; }
+.field label { display:block; font-size:.8rem; color:var(--dim); margin-bottom:6px; font-weight:500; }
+.field input[type=text], .field input[type=number] {
+  width:100%; padding:13px 16px; border-radius:var(--r-md);
+  border:1px solid var(--stroke); background:rgba(0,0,0,.3);
+  color:var(--txt); font-family:inherit; font-size:1rem; outline:none;
+}
+.field input:focus { border-color:var(--cyan); box-shadow:0 0 0 3px #22d3ee2b; }
+
+/* ---------- splash ---------- */
+#screen-splash { align-items:center; justify-content:center; text-align:center; gap:8px; }
+.logo-orb {
+  width:130px; height:130px; border-radius:50%; margin-bottom:18px;
+  background:conic-gradient(from 180deg, #22d3ee, #a78bfa, #f472b6, #22d3ee);
+  display:flex; align-items:center; justify-content:center; font-size:3.4rem;
+  animation:spinGlow 6s linear infinite; box-shadow:0 0 60px #a78bfa66;
+}
+.logo-orb > span { animation:spinGlowRev 6s linear infinite; }
+@keyframes spinGlow { to { transform:rotate(360deg) } }
+@keyframes spinGlowRev { to { transform:rotate(-360deg) } }
+.splash-formula {
+  font-size:.8rem; color:var(--dim); letter-spacing:2px;
+  font-family:'Courier New', monospace; margin-top:6px;
+}
+
+/* ---------- setup (selfie) ---------- */
+.selfie-wrap { position:relative; width:180px; height:180px; margin:8px auto 16px; }
+.selfie-ring {
+  position:absolute; inset:-8px; border-radius:50%;
+  background:conic-gradient(from 0deg, #22d3ee, #a78bfa, #f472b6, #22d3ee);
+  animation:spinGlow 4s linear infinite;
+}
+.selfie-hole {
+  position:absolute; inset:0; border-radius:50%; overflow:hidden;
+  background:#000; display:flex; align-items:center; justify-content:center;
+}
+.selfie-hole video, .selfie-hole canvas, .selfie-hole img { width:100%; height:100%; object-fit:cover; }
+.selfie-hole .placeholder { font-size:4rem; opacity:.5; }
+
+/* ---------- home ---------- */
+.player-chip {
+  display:flex; align-items:center; gap:12px; padding:12px 14px;
+  background:var(--glass); border:1px solid var(--stroke); border-radius:var(--r-lg);
+  margin-bottom:16px;
+}
+.avatar { width:52px; height:52px; border-radius:50%; object-fit:cover; border:2px solid var(--cyan); background:#111; }
+.mode-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.mode-card {
+  position:relative; overflow:hidden; cursor:pointer;
+  background:var(--glass); border:1px solid var(--stroke);
+  border-radius:var(--r-lg); padding:16px 14px; min-height:128px;
+  display:flex; flex-direction:column; gap:6px;
+  transition:transform .15s, border-color .2s;
+}
+.mode-card:active { transform:scale(.96); border-color:var(--cyan); }
+.mode-card .ico { font-size:2rem; }
+.mode-card .name { font-weight:700; font-size:.95rem; line-height:1.25; }
+.mode-card .sub { font-size:.7rem; color:var(--dim); line-height:1.35; }
+.mode-card.wide { grid-column:1 / -1; flex-direction:row; align-items:center; min-height:0; }
+.mode-card .beam {
+  position:absolute; top:0; left:-60%; width:40%; height:100%;
+  background:linear-gradient(105deg, transparent, rgba(255,255,255,.09), transparent);
+  animation:beam 3.4s ease-in-out infinite;
+}
+@keyframes beam { 0%,55%{left:-60%} 85%,100%{left:130%} }
+
+/* ---------- AR view ---------- */
+#screen-ar { background:#000; }
+#ar-video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+#ar-canvas { position:absolute; inset:0; width:100%; height:100%; }
+.ar-sim-bg {
+  position:absolute; inset:0;
+  background:linear-gradient(180deg,#0ea5e9 0%, #7dd3fc 45%, #4d7c0f 46%, #3f6212 100%);
+  opacity:.85;
+}
+.hud-top {
+  position:absolute; top:0; left:0; right:0; z-index:20;
+  display:flex; justify-content:space-between; align-items:flex-start;
+  padding:calc(10px + env(safe-area-inset-top)) 12px 0;
+  pointer-events:none;
+}
+.hud-top > * { pointer-events:auto; }
+.hud-pill {
+  background:rgba(5,8,20,.65); backdrop-filter:blur(10px);
+  border:1px solid var(--stroke); border-radius:999px;
+  padding:8px 14px; font-size:.85rem; font-weight:600;
+  display:flex; align-items:center; gap:8px;
+}
+.hud-score { color:var(--amber); font-size:1.05rem; }
+.ammo-dots { display:flex; gap:5px; }
+.ammo-dot { width:11px; height:11px; border-radius:50%; background:var(--cyan); box-shadow:0 0 8px var(--cyan); transition:.3s; }
+.ammo-dot.used { background:rgba(255,255,255,.15); box-shadow:none; }
+
+/* AR floating control panel (ข้อ 4.3) */
+.ar-panel {
+  position:absolute; z-index:30; left:12px; right:12px;
+  bottom:calc(12px + env(safe-area-inset-bottom));
+  background:rgba(8,12,28,.72); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+  border:1px solid var(--stroke); border-radius:var(--r-lg);
+  padding:14px 16px 12px; box-shadow:0 -4px 40px rgba(34,211,238,.15), var(--shadow);
+  transition:transform .3s ease;
+}
+.ar-panel.collapsed { transform:translateY(calc(100% - 46px)); }
+.ar-panel-tab {
+  position:absolute; top:-1px; left:50%; transform:translate(-50%,-100%);
+  background:rgba(8,12,28,.72); border:1px solid var(--stroke); border-bottom:none;
+  border-radius:12px 12px 0 0; padding:5px 22px; font-size:.75rem; color:var(--cyan);
+  backdrop-filter:blur(16px); cursor:pointer;
+}
+.sliders { display:grid; grid-template-columns:1fr 1fr; gap:8px 16px; }
+.sld { font-size:.72rem; color:var(--dim); }
+.sld .val { color:var(--cyan); font-weight:700; font-size:.9rem; font-family:'Courier New',monospace; }
+.sld input[type=range] {
+  width:100%; margin-top:2px; accent-color:var(--cyan); height:26px;
+}
+.fire-row { display:flex; gap:10px; margin-top:10px; align-items:center; }
+.btn-fire {
+  flex:1; border:none; border-radius:var(--r-md); padding:14px;
+  font-family:inherit; font-size:1.15rem; font-weight:800; color:#fff; letter-spacing:1px;
+  background:linear-gradient(135deg,#f59e0b,#ef4444); box-shadow:0 6px 24px #ef444455;
+  cursor:pointer; transition:transform .1s;
+}
+.btn-fire:active { transform:scale(.95); }
+.btn-fire:disabled { opacity:.4; }
+
+/* crosshair + rangefinder */
+.crosshair {
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:64px; height:64px; z-index:15; pointer-events:none;
+}
+.crosshair::before, .crosshair::after {
+  content:''; position:absolute; background:var(--lime); box-shadow:0 0 8px var(--lime);
+}
+.crosshair::before { left:50%; top:0; bottom:0; width:2px; transform:translateX(-50%); }
+.crosshair::after { top:50%; left:0; right:0; height:2px; transform:translateY(-50%); }
+.crosshair .ring { position:absolute; inset:12px; border:2px solid var(--lime); border-radius:50%; box-shadow:0 0 10px var(--lime); }
+.range-readout {
+  position:absolute; top:calc(50% + 48px); left:50%; transform:translateX(-50%);
+  z-index:15; text-align:center; pointer-events:none;
+  font-family:'Courier New',monospace; font-weight:700; font-size:1.7rem; color:var(--lime);
+  text-shadow:0 0 14px var(--lime);
+}
+.range-readout .u { font-size:.85rem; }
+
+/* mission banner */
+.mission {
+  position:absolute; top:calc(64px + env(safe-area-inset-top)); left:12px; right:12px; z-index:18;
+  background:rgba(8,12,28,.7); border:1px solid var(--stroke); border-radius:var(--r-md);
+  padding:10px 14px; font-size:.85rem; backdrop-filter:blur(10px); line-height:1.5;
+}
+.mission b { color:var(--amber); }
+
+/* ---------- formula game ---------- */
+.slot-row { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:16px 0; min-height:56px; }
+.slot {
+  min-width:52px; height:52px; border-radius:var(--r-sm);
+  border:2px dashed rgba(255,255,255,.3); background:rgba(0,0,0,.25);
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.25rem; font-weight:700; font-family:'Courier New',monospace;
+  padding:0 8px; transition:.2s; cursor:pointer;
+}
+.slot.filled { border-style:solid; border-color:var(--cyan); background:#22d3ee22; }
+.slot.fixed { border:none; background:transparent; color:var(--dim); cursor:default; min-width:auto; }
+.slot.good { border-color:var(--lime); background:#a3e63522; animation:pop .3s; }
+.slot.bad { border-color:var(--red); background:#f8717122; animation:shake .4s; }
+.tile-bank { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; padding:14px 0; }
+.tile {
+  min-width:52px; height:52px; padding:0 12px; border-radius:var(--r-sm);
+  background:linear-gradient(160deg,#1e293b,#0f172a); border:1px solid var(--stroke);
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.25rem; font-weight:700; font-family:'Courier New',monospace; color:var(--cyan);
+  cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,.4); transition:transform .12s;
+}
+.tile:active { transform:scale(1.12); }
+.tile.used { opacity:.18; pointer-events:none; }
+@keyframes pop { 50%{transform:scale(1.18)} }
+@keyframes shake { 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)} }
+
+/* ---------- leaderboard ---------- */
+.tabs { display:flex; gap:8px; margin-bottom:14px; }
+.tab {
+  flex:1; text-align:center; padding:10px; border-radius:var(--r-md); cursor:pointer;
+  background:var(--glass); border:1px solid var(--stroke); font-size:.85rem; font-weight:600;
+}
+.tab.active { background:var(--grad); border-color:transparent; }
+.lb-row {
+  display:flex; align-items:center; gap:12px; padding:11px 14px;
+  border-bottom:1px solid rgba(255,255,255,.07); font-size:.92rem;
+}
+.lb-rank { width:30px; font-weight:800; font-size:1.05rem; color:var(--dim); text-align:center; }
+.lb-rank.r1 { color:#ffd700; } .lb-rank.r2 { color:#c0c0c0; } .lb-rank.r3 { color:#cd7f32; }
+.lb-name { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.lb-name .t { display:block; font-size:.7rem; color:var(--dim); }
+.lb-score { font-weight:700; color:var(--amber); font-family:'Courier New',monospace; }
+
+/* ---------- matchmaking ---------- */
+.vs-wrap { display:flex; align-items:center; justify-content:center; gap:18px; margin:26px 0; }
+.vs-player { text-align:center; width:120px; }
+.vs-player .avatar { width:84px; height:84px; margin-bottom:8px; }
+.vs-badge {
+  font-size:1.6rem; font-weight:800; font-style:italic;
+  background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.radar {
+  width:120px; height:120px; margin:20px auto; border-radius:50%; position:relative;
+  border:2px solid #22d3ee44; overflow:hidden;
+}
+.radar::before {
+  content:''; position:absolute; inset:0; border-radius:50%;
+  background:conic-gradient(from 0deg, #22d3ee88, transparent 70deg);
+  animation:spinGlow 1.6s linear infinite;
+}
+.radar::after { content:'📡'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:2rem; }
+
+/* ---------- result ---------- */
+.result-score {
+  font-size:3.6rem; font-weight:800; font-family:'Courier New',monospace;
+  background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent;
+  text-align:center; margin:6px 0;
+}
+.stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:16px 0; }
+.stat-box { background:var(--glass); border:1px solid var(--stroke); border-radius:var(--r-md); padding:12px; text-align:center; }
+.stat-box .v { font-size:1.4rem; font-weight:700; color:var(--cyan); font-family:'Courier New',monospace; }
+.stat-box .k { font-size:.7rem; color:var(--dim); margin-top:2px; }
+
+/* ---------- creatures (ข้อ 6) ---------- */
+#creature-layer { position:absolute; inset:0; z-index:40; pointer-events:none; overflow:hidden; }
+.creature { position:absolute; font-size:2.2rem; will-change:transform; filter:drop-shadow(0 4px 8px rgba(0,0,0,.4)); }
+
+/* ---------- camera unlock gate ---------- */
+#cam-gate {
+  position:fixed; inset:0; z-index:90; display:none;
+  align-items:center; justify-content:center; padding:24px;
+  background:rgba(4,7,18,.78); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+}
+#cam-gate.show { display:flex; animation:fadeIn .25s ease; }
+
+/* ---------- toast & misc ---------- */
+#toast {
+  position:fixed; bottom:90px; left:50%; transform:translate(-50%, 20px); z-index:99;
+  background:rgba(10,14,30,.92); border:1px solid var(--stroke); border-radius:999px;
+  padding:11px 22px; font-size:.9rem; opacity:0; transition:.3s; pointer-events:none;
+  max-width:86vw; text-align:center; backdrop-filter:blur(10px);
+}
+#toast.show { opacity:1; transform:translate(-50%, 0); }
+.topbar { display:flex; align-items:center; gap:12px; padding:16px 20px 8px; }
+.back-btn {
+  width:42px; height:42px; border-radius:50%; border:1px solid var(--stroke);
+  background:var(--glass); color:var(--txt); font-size:1.15rem; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.hit-flash {
+  position:absolute; inset:0; z-index:35; pointer-events:none; opacity:0;
+  background:radial-gradient(circle, #fbbf2455, transparent 70%);
+}
+.hit-flash.go { animation:flash .5s ease-out; }
+@keyframes flash { 0%{opacity:1} 100%{opacity:0} }
+.big-msg {
+  position:absolute; top:38%; left:0; right:0; z-index:36; text-align:center;
+  font-size:2.2rem; font-weight:800; pointer-events:none; opacity:0;
+  text-shadow:0 4px 24px rgba(0,0,0,.6);
+}
+.big-msg.go { animation:bigmsg 1.4s ease-out; }
+@keyframes bigmsg { 0%{opacity:0; transform:scale(.4)} 18%{opacity:1; transform:scale(1.15)} 30%{transform:scale(1)} 75%{opacity:1} 100%{opacity:0; transform:translateY(-30px)} }
+
+.diff-row { display:flex; gap:10px; margin:12px 0; }
+.diff-pick {
+  flex:1; padding:12px; text-align:center; border-radius:var(--r-md); cursor:pointer;
+  background:var(--glass); border:2px solid var(--stroke); font-weight:600; font-size:.9rem;
+}
+.diff-pick.sel { border-color:var(--cyan); background:#22d3ee1e; }
+.list-clean { list-style:none; }
+</style>
+
+</head>
+<body>
+
+  <!-- ============ SPLASH ============ -->
+  <section id="screen-splash" class="screen active pad">
+    <div class="logo-orb"><span>🚀</span></div>
+    <h1>AR <span class="grad-text">PHYSICS</span> LAB</h1>
+    <p class="dim">เกมฟิสิกส์ AR วัดระยะจริง ยิงโพรเจกไทล์ แข่งกับเพื่อน</p>
+    <p class="splash-formula">s = ut + ½at² &nbsp;•&nbsp; F = ma</p>
+    <div style="height:34px"></div>
+    <button class="btn" style="max-width:300px" onclick="App.start()">▶ เริ่มการทดลอง</button>
+  </section>
+
+  <!-- ============ SETUP: ถ่ายรูป + ตั้งชื่อ (ข้อ 8) ============ -->
+  <section id="screen-setup" class="screen scrolly pad" style="align-items:center; text-align:center;">
+    <h2 style="margin-top:14px">สร้างโปรไฟล์<span class="grad-text">นักฟิสิกส์</span></h2>
+    <p class="dim">รูปหน้าของคุณจะกลายเป็น "กระสุนโพรเจกไทล์" ในเกม!</p>
+    <div class="selfie-wrap">
+      <div class="selfie-ring"></div>
+      <div class="selfie-hole">
+        <video id="selfie-video" autoplay playsinline muted style="display:none"></video>
+        <img id="selfie-img" alt="" style="display:none">
+        <div id="selfie-ph" class="placeholder">🧑‍🔬</div>
+      </div>
+    </div>
+    <div style="display:flex; gap:10px; width:100%; max-width:340px;">
+      <button class="btn ghost" id="btn-cam" onclick="App.selfieCam()">📷 เปิดกล้อง</button>
+      <button class="btn" id="btn-snap" onclick="App.selfieSnap()" disabled>✨ ถ่ายภาพ</button>
+    </div>
+    <div style="height:18px"></div>
+    <div style="width:100%; max-width:340px; text-align:left;">
+      <div class="field">
+        <label>ชื่อผู้เล่น *</label>
+        <input type="text" id="in-name" maxlength="24" placeholder="เช่น น้องนิวตัน">
+      </div>
+      <div class="field">
+        <label>ชื่อทีม (ตั้งภายหลังได้)</label>
+        <input type="text" id="in-team" maxlength="24" placeholder="เช่น ทีมแรงโน้มถ่วง">
+      </div>
+      <button class="btn" onclick="App.saveProfile()">🚀 บันทึก & เข้าสู่แล็บ</button>
+    </div>
+    <canvas id="selfie-canvas" width="128" height="128" style="display:none"></canvas>
+  </section>
+
+  <!-- ============ HOME ============ -->
+  <section id="screen-home" class="screen scrolly pad">
+    <div class="player-chip" onclick="App.editProfile()">
+      <img id="home-avatar" class="avatar" alt="">
+      <div style="flex:1">
+        <div id="home-name" style="font-weight:700">—</div>
+        <div id="home-team" class="dim">—</div>
+      </div>
+      <div class="dim small">แก้ไข ✏️</div>
+    </div>
+
+    <h2 style="margin-bottom:12px">เลือก<span class="grad-text">ภารกิจ</span></h2>
+    <div class="mode-grid">
+      <div class="mode-card" onclick="App.openProjectile('solo')">
+        <div class="beam"></div>
+        <div class="ico">🎯</div>
+        <div class="name">ยิงโพรเจกไทล์</div>
+        <div class="sub">ปรับมุม ความเร็ว มวล ยิงให้โดนเป้า</div>
+      </div>
+      <div class="mode-card" onclick="App.openDistance()">
+        <div class="beam"></div>
+        <div class="ico">📏</div>
+        <div class="name">วัดระยะ AR</div>
+        <div class="sub">คำนวณ มาร์คจุด แล้วเดินไปให้ถึง</div>
+      </div>
+      <div class="mode-card" onclick="App.openFormula()">
+        <div class="beam"></div>
+        <div class="ico">🧩</div>
+        <div class="name">เรียงสูตรฟิสิกส์</div>
+        <div class="sub">จับตัวแปรเรียงเป็นสูตรการเคลื่อนที่</div>
+      </div>
+      <div class="mode-card" onclick="App.openMatch()">
+        <div class="beam"></div>
+        <div class="ico">⚔️</div>
+        <div class="name">จับคู่แข่งขัน</div>
+        <div class="sub">สุ่มหาคู่แข่ง ยิงเป้าโจทย์เดียวกัน</div>
+      </div>
+      <div class="mode-card wide" onclick="App.openLeaderboard()">
+        <div class="beam"></div>
+        <div class="ico">🏆</div>
+        <div style="flex:1">
+          <div class="name">ตารางคะแนน</div>
+          <div class="sub">อันดับผู้เล่น • ทีม • สถิติบันทึกลง Google Sheets</div>
+        </div>
+      </div>
+    </div>
+    <div style="height:14px"></div>
+    <div class="card small dim" id="rules-card">กำลังโหลดกติกาคะแนน…</div>
+  </section>
+
+  <!-- ============ AR GAME (โพรเจกไทล์ + วัดระยะ) ============ -->
+  <section id="screen-ar" class="screen">
+    <video id="ar-video" autoplay playsinline muted></video>
+    <div class="ar-sim-bg" id="ar-sim-bg" style="display:none"></div>
+    <canvas id="ar-canvas"></canvas>
+
+    <div class="hud-top">
+      <button class="back-btn" onclick="App.exitAr()">✕</button>
+      <div style="display:flex; flex-direction:column; gap:6px; align-items:center;">
+        <div class="hud-pill hud-score">⭐ <span id="hud-score">0</span></div>
+        <div class="hud-pill" id="hud-ammo-wrap"><span class="small dim">กระสุน</span><div class="ammo-dots" id="ammo-dots"></div></div>
+      </div>
+      <button class="back-btn" onclick="Fx.toggleMute(this)" id="btn-mute">🔊</button>
+    </div>
+
+    <div class="mission" id="mission-banner" style="display:none"></div>
+
+    <div class="crosshair" id="crosshair" style="display:none"><div class="ring"></div></div>
+    <div class="range-readout" id="range-readout" style="display:none">0.0 <span class="u">m</span></div>
+
+    <!-- แผงควบคุม AR ลอย (ข้อ 4.3) -->
+    <div class="ar-panel" id="ar-panel">
+      <div class="ar-panel-tab" onclick="Game.togglePanel()">▲▼ แผงควบคุม</div>
+      <div class="sliders" id="panel-sliders">
+        <div class="sld">มุมยิง θ <span class="val" id="v-angle">45°</span>
+          <input type="range" id="sl-angle" min="10" max="80" value="45" step="1"></div>
+        <div class="sld">ความเร็วต้น u <span class="val" id="v-speed">14 m/s</span>
+          <input type="range" id="sl-speed" min="4" max="30" value="14" step="0.5"></div>
+        <div class="sld">มวล m <span class="val" id="v-mass">1.0 kg</span>
+          <input type="range" id="sl-mass" min="0.2" max="5" value="1" step="0.1"></div>
+        <div class="sld">ระยะเป้า d <span class="val" id="v-dist">15 m</span>
+          <input type="range" id="sl-dist" min="5" max="40" value="15" step="0.5"></div>
+      </div>
+      <div class="fire-row" id="fire-row">
+        <button class="btn mini ghost" id="btn-measure" onclick="Game.useMeasuredDistance()">📏 ใช้ระยะที่วัดจริง</button>
+        <button class="btn-fire" id="btn-fire" onclick="Game.fire()">🔥 ยิง!</button>
+      </div>
+      <div class="fire-row" id="range-row" style="display:none">
+        <button class="btn mini ghost" onclick="Ar.calibrate()">⚙️ ความสูงกล้อง</button>
+        <button class="btn-fire" id="btn-mark" onclick="Game.markPoint()">📍 มาร์คจุดนี้</button>
+      </div>
+    </div>
+
+    <div class="hit-flash" id="hit-flash"></div>
+    <div class="big-msg" id="big-msg"></div>
+  </section>
+
+  <!-- ============ FORMULA GAME (ข้อ 7) ============ -->
+  <section id="screen-formula" class="screen scrolly">
+    <div class="topbar">
+      <button class="back-btn" onclick="App.go('home')">←</button>
+      <h2>🧩 เรียงสูตร<span class="grad-text">การเคลื่อนที่</span></h2>
+    </div>
+    <div class="pad" style="padding-top:4px">
+      <div id="fml-setup">
+        <p class="dim">ลากตัวแปรและตัวเลขมาเรียงเป็นสูตรฟิสิกส์ให้ถูกต้อง ยิ่งเร็วยิ่งได้โบนัส!</p>
+        <div class="diff-row">
+          <div class="diff-pick sel" data-d="easy" onclick="Formula.pickDiff(this)">😊 ง่าย<br><span class="small dim">สูตรสั้น ไม่มีตัวหลอก</span></div>
+          <div class="diff-pick" data-d="hard" onclick="Formula.pickDiff(this)">🔥 ยาก<br><span class="small dim">สูตรยาว + แทนค่าตัวเลข</span></div>
+        </div>
+        <button class="btn" onclick="Formula.start()">▶ เริ่มเกม</button>
+      </div>
+      <div id="fml-game" style="display:none">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="hud-pill">⭐ <span id="fml-score">0</span></div>
+          <div class="hud-pill">ข้อ <span id="fml-no">1</span>/<span id="fml-total">5</span></div>
+          <div class="hud-pill">⏱ <span id="fml-time">0</span>s</div>
+        </div>
+        <div class="card" style="margin-top:14px; text-align:center;">
+          <div class="dim" id="fml-quest">—</div>
+          <div class="slot-row" id="fml-slots"></div>
+          <div id="fml-numq" class="dim" style="display:none; margin-bottom:8px;"></div>
+        </div>
+        <div class="tile-bank" id="fml-bank"></div>
+        <div style="display:flex; gap:10px;">
+          <button class="btn ghost" onclick="Formula.clearSlots()">↺ ล้าง</button>
+          <button class="btn" onclick="Formula.check()">✔ ตรวจคำตอบ</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ LEADERBOARD ============ -->
+  <section id="screen-leaderboard" class="screen scrolly">
+    <div class="topbar">
+      <button class="back-btn" onclick="App.go('home')">←</button>
+      <h2>🏆 ตาราง<span class="grad-text">คะแนน</span></h2>
+    </div>
+    <div class="pad" style="padding-top:6px">
+      <div class="tabs">
+        <div class="tab active" data-t="players" onclick="App.lbTab(this)">ผู้เล่น</div>
+        <div class="tab" data-t="teams" onclick="App.lbTab(this)">ทีม</div>
+        <div class="tab" data-t="topScores" onclick="App.lbTab(this)">สถิติสูงสุด</div>
+      </div>
+      <div class="card" id="lb-list" style="padding:6px 4px;">
+        <div class="dim" style="text-align:center; padding:24px;">กำลังโหลด…</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MATCHMAKING (ข้อ 3) ============ -->
+  <section id="screen-match" class="screen pad" style="align-items:center; justify-content:center; text-align:center;">
+    <div id="mm-searching">
+      <h2>⚔️ ค้นหา<span class="grad-text">คู่แข่ง</span></h2>
+      <div class="radar"></div>
+      <p class="dim" id="mm-status">กำลังสแกนหานักฟิสิกส์คนอื่น…</p>
+      <div style="height:20px"></div>
+      <button class="btn danger" style="max-width:240px" onclick="App.cancelMatch()">ยกเลิก</button>
+    </div>
+    <div id="mm-found" style="display:none; width:100%; max-width:400px;">
+      <h2>พบคู่แข่งแล้ว!</h2>
+      <div class="vs-wrap">
+        <div class="vs-player">
+          <img class="avatar" id="mm-me-img" alt=""><div id="mm-me-name" class="small">คุณ</div>
+        </div>
+        <div class="vs-badge">VS</div>
+        <div class="vs-player">
+          <img class="avatar" id="mm-opp-img" alt=""><div id="mm-opp-name" class="small">คู่แข่ง</div>
+        </div>
+      </div>
+      <p class="dim">โจทย์เดียวกัน กระสุนเท่ากัน — ใครแม่นกว่าชนะ!</p>
+      <div style="height:16px"></div>
+      <button class="btn" onclick="App.startMatchGame()">🔥 เริ่มดวล!</button>
+    </div>
+  </section>
+
+  <!-- ============ RESULT ============ -->
+  <section id="screen-result" class="screen scrolly pad" style="align-items:center; justify-content:center; text-align:center;">
+    <div style="width:100%; max-width:400px;">
+      <div style="font-size:3rem" id="res-emoji">🎉</div>
+      <h2 id="res-title">ภารกิจสำเร็จ!</h2>
+      <div class="result-score" id="res-score">0</div>
+      <div class="stat-grid" id="res-stats"></div>
+      <div class="card" id="res-vs" style="display:none; margin-bottom:14px;"></div>
+      <div class="dim small" id="res-saving">📊 กำลังบันทึกสถิติลง Google Sheets…</div>
+      <div style="height:14px"></div>
+      <div style="display:flex; gap:10px;">
+        <button class="btn ghost" onclick="App.go('home')">🏠 หน้าหลัก</button>
+        <button class="btn" id="res-again">↻ เล่นอีกครั้ง</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- overlays -->
+  <div id="cam-gate">
+    <div class="card" style="max-width:340px; text-align:center;">
+      <div style="font-size:2.6rem">📷🔒</div>
+      <h2 style="margin-top:6px">ปลดล็อก<span class="grad-text">กล้อง</span></h2>
+      <p class="dim" id="cam-gate-desc" style="margin:10px 0 16px; line-height:1.65"></p>
+      <button class="btn" id="btn-unlock" onclick="App.openFullTab()">🔓 เปิดเวอร์ชันกล้องเต็มรูปแบบ</button>
+      <div style="height:10px" id="btn-unlock-gap"></div>
+      <button class="btn ghost" onclick="App.dismissCamGate()">เล่นต่อแบบฉากจำลอง (ครบทุกโหมด)</button>
+    </div>
+  </div>
+  <div id="creature-layer"></div>
+  <div id="toast"></div>
+
+  <script>
+/* ============ CORE: server bridge / state / router ============ */
+
+/** ที่อยู่ API ของ GAS (/exec) — ใช้เมื่อหน้าเว็บนี้ถูกโฮสต์นอก GAS (โหมดกล้องเต็มรูปแบบ)
+ *  ตั้งได้ 2 ทาง: เปิดหน้าเว็บด้วย ?api=<url /exec> (ระบบจำให้อัตโนมัติ) หรือแก้ค่า fallback ข้างล่าง */
+const API_URL = (() => {
+  try {
+    const q = new URLSearchParams(location.search).get('api');
+    if (q) { localStorage.setItem('gas_api_url', q); return q; }
+    return localStorage.getItem('gas_api_url') || ''; // ← หรือวาง URL /exec ตรงนี้ถาวร
+  } catch (e) { return ''; }
+})();
+
+/** เรียกฟังก์ชันฝั่ง GAS แบบ Promise — เลือก transport อัตโนมัติ:
+ *  1) ในแอพ GAS: google.script.run   2) โฮสต์ภายนอก: fetch -> doPost   3) เดโม: MockServer */
+const GS = {
+  isLive: !!(window.google && google.script && google.script.run),
+  call(fn, ...args) {
+    if (this.isLive) {
+      return new Promise((resolve, reject) => {
+        google.script.run
+          .withSuccessHandler(resolve)
+          .withFailureHandler(err => reject(new Error(err && err.message || 'server error')))
+          [fn](...args);
+      });
+    }
+    if (API_URL) {
+      // Content-Type: text/plain = simple request ไม่ติด CORS preflight (GAS ตอบ OPTIONS ไม่ได้)
+      return fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ fn, args })
+      }).then(r => {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      }).then(j => {
+        if (!j.ok) throw new Error(j.error || 'server error');
+        return j.result;
+      });
+    }
+    if (MockServer[fn]) return MockServer[fn](...args);
+    return Promise.reject(new Error('no mock for ' + fn));
+  }
+};
+
+/** Mock backend — ใช้เดโม/ทดสอบหน้าเว็บโดยไม่ต้อง deploy GAS */
+const MockServer = {
+  _ls(k, d) { try { return JSON.parse(localStorage.getItem('mock_' + k)) ?? d; } catch (e) { return d; } },
+  _save(k, v) { localStorage.setItem('mock_' + k, JSON.stringify(v)); },
+  async getGameConfig() {
+    return {
+      hit_points: 100, bullseye_bonus: 50, ammo_per_game: 5, unused_ammo_bonus: 20,
+      distance_points: 150, distance_tolerance_m: 0.5, formula_points: 80,
+      time_bonus_max: 50, gravity: 9.8, creatures_enabled: true, match_rounds: 3
+    };
+  },
+  async registerPlayer(p) { this._save('player', p); return { ok: true }; },
+  async submitScore(rec) {
+    const all = this._ls('scores', []); all.push({ ...rec, when: Date.now() });
+    this._save('scores', all); return { ok: true };
+  },
+  async getLeaderboard() {
+    const all = this._ls('scores', []);
+    const by = {};
+    all.forEach(r => {
+      by[r.playerId] = by[r.playerId] || { name: r.name, team: r.team, total: 0, games: 0, best: 0 };
+      by[r.playerId].total += r.score; by[r.playerId].games++;
+      by[r.playerId].best = Math.max(by[r.playerId].best, r.score);
+    });
+    const players = Object.values(by).sort((a, b) => b.total - a.total);
+    return {
+      players,
+      teams: [],
+      topScores: all.map(r => ({ name: r.name, team: r.team, mode: r.mode, score: r.score, when: r.when }))
+        .sort((a, b) => b.score - a.score).slice(0, 10)
+    };
+  },
+  // mock matchmaking: จับคู่กับบอทหลังรอ ~4 วิ
+  async joinQueue(p) { this._mmT = Date.now(); return { status: 'waiting' }; },
+  async pollMatch(pid) {
+    if (Date.now() - (this._mmT || 0) > 4000) {
+      return {
+        status: 'matched',
+        match: {
+          matchId: 'mock-' + Date.now(), seed: Math.floor(Math.random() * 1e9), mode: 'projectile',
+          players: [
+            { id: pid, name: State.profile?.name || 'คุณ', team: '', photo: State.profile?.photo || '' },
+            { id: 'bot', name: '🤖 AI นิวตัน', team: 'ทีมหุ่นยนต์', photo: '' }
+          ]
+        }
+      };
+    }
+    return { status: 'waiting' };
+  },
+  async cancelQueue() { return { ok: true }; },
+  async submitMatchScore(mid, pid, score) {
+    return { ok: true, opponentScore: Math.floor(200 + Math.random() * 350) };
+  },
+  async pollOpponentScore() { return { opponentScore: Math.floor(200 + Math.random() * 350) }; }
+};
+
+/* ---------- camera permissions-policy gate ----------
+ * GAS เสิร์ฟแอพใน iframe ของ googleusercontent ซึ่งไม่มีสิทธิ์ camera
+ * -> ตรวจแล้วชวนผู้ใช้ "เปิดแบบเต็มหน้า" (window.open ตัวเอง) กล้องจะใช้ได้ทันที
+ */
+const CamGate = {
+  isFramed() {
+    try { return window.self !== window.top; } catch (e) { return true; }
+  },
+  policyAllows() {
+    try {
+      const fp = document.permissionsPolicy || document.featurePolicy;
+      if (fp && typeof fp.allowsFeature === 'function') return fp.allowsFeature('camera');
+    } catch (e) {}
+    return true; // ตรวจไม่ได้ (เช่น Safari) -> ให้ลองเปิดกล้องจริง แล้วจับ error แทน
+  },
+  blocked() { return this.isFramed() && !this.policyAllows(); },
+  /** error จาก getUserMedia ที่น่าจะเกิดจาก policy ในเฟรม ไม่ใช่ผู้ใช้กดปฏิเสธ */
+  looksLikePolicyError(err) {
+    if (!this.isFramed()) return false;
+    const m = String(err && (err.message || err.name) || '').toLowerCase();
+    return err && (err.name === 'NotAllowedError' || err.name === 'SecurityError') &&
+           (this.blocked() || m.includes('policy') || m.includes('disallowed') || m.includes('permission'));
+  }
+};
+
+/* ---------- global state ---------- */
+const State = {
+  profile: null,          // {id, name, team, photo}
+  config: null,           // จากชีต Config
+  match: null,            // แมตช์ปัจจุบัน
+  measuredDist: null,     // ระยะที่วัดได้จาก AR rangefinder (เมตร)
+  camHeight: parseFloat(localStorage.getItem('cam_height') || '1.5')
+};
+
+function loadProfile() {
+  try { State.profile = JSON.parse(localStorage.getItem('arphys_profile')); } catch (e) {}
+  return State.profile;
+}
+function saveProfileLocal(p) {
+  State.profile = p;
+  localStorage.setItem('arphys_profile', JSON.stringify(p));
+}
+function uuid() {
+  return 'p-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+}
+
+/* seeded RNG — ให้คู่แข่งได้โจทย์ชุดเดียวกัน */
+function seededRng(seed) {
+  let s = seed >>> 0;
+  return function () {
+    s = (s * 1664525 + 1013904223) >>> 0;
+    return s / 4294967296;
+  };
+}
+
+/* ---------- router / helpers ---------- */
+const $ = id => document.getElementById(id);
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $('screen-' + name).classList.add('active');
+}
+function toast(msg, ms = 2400) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._h);
+  t._h = setTimeout(() => t.classList.remove('show'), ms);
+}
+function fmt(n, d = 1) { return Number(n).toFixed(d); }
+</script>
+
+  <script>
+/* ============ FX: เสียงประกอบ (WebAudio สังเคราะห์ ไม่ต้องมีไฟล์) + สัตว์ประกอบฉาก ============ */
+
+const Fx = {
+  ctx: null, muted: false,
+
+  ac() {
+    if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    return this.ctx;
+  },
+
+  toggleMute(btn) {
+    this.muted = !this.muted;
+    if (btn) btn.textContent = this.muted ? '🔇' : '🔊';
+  },
+
+  /* --- primitive synth helpers --- */
+  tone(freq, dur, type = 'sine', vol = 0.25, when = 0, slideTo = null) {
+    if (this.muted) return;
+    const ctx = this.ac(), t0 = ctx.currentTime + when;
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t0);
+    if (slideTo) o.frequency.exponentialRampToValueAtTime(Math.max(slideTo, 1), t0 + dur);
+    g.gain.setValueAtTime(vol, t0);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+    o.connect(g).connect(ctx.destination);
+    o.start(t0); o.stop(t0 + dur + 0.05);
+  },
+  noise(dur, vol = 0.3, when = 0, hp = 400) {
+    if (this.muted) return;
+    const ctx = this.ac(), t0 = ctx.currentTime + when;
+    const len = Math.max(1, ctx.sampleRate * dur);
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    const src = ctx.createBufferSource(); src.buffer = buf;
+    const f = ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = hp;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(vol, t0);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+    src.connect(f).connect(g).connect(ctx.destination);
+    src.start(t0);
+  },
+
+  /* --- game sfx --- */
+  shoot() {                                   // วูบ! ตอนยิง
+    this.noise(0.25, 0.35, 0, 800);
+    this.tone(680, 0.3, 'sawtooth', 0.15, 0, 120);
+  },
+  hit() {                                     // โดนเป้า — แฟนแฟร์ตื่นเต้น
+    this.noise(0.15, 0.4, 0, 300);
+    [523, 659, 784, 1047].forEach((f, i) => this.tone(f, 0.22, 'triangle', 0.3, i * 0.09));
+    this.tone(1319, 0.5, 'sine', 0.22, 0.36);
+  },
+  bullseye() {                                // เข้ากลางเป้า!
+    this.hit();
+    [1047, 1319, 1568, 2093].forEach((f, i) => this.tone(f, 0.3, 'square', 0.12, 0.4 + i * 0.08));
+  },
+  miss() {                                    // พลาด
+    this.tone(200, 0.4, 'sawtooth', 0.2, 0, 60);
+    this.noise(0.3, 0.15, 0.05, 150);
+  },
+  tick()  { this.tone(1200, 0.05, 'square', 0.08); },
+  good()  { this.tone(880, 0.12, 'sine', 0.25); this.tone(1320, 0.25, 'sine', 0.25, 0.1); }, // ถูก
+  bad()   { this.tone(220, 0.3, 'square', 0.18); this.tone(180, 0.35, 'square', 0.18, 0.12); }, // ผิด
+  matchFound() { [660, 880, 1100].forEach((f, i) => this.tone(f, 0.25, 'triangle', 0.3, i * 0.13)); },
+  fanfare() {                                 // จบเกม
+    [523, 523, 659, 784, 1047].forEach((f, i) => this.tone(f, 0.3, 'triangle', 0.3, i * 0.15));
+    this.noise(0.6, 0.12, 0.6, 2000);
+  },
+  chirp() { this.tone(2200 + Math.random() * 800, 0.08, 'sine', 0.06); this.tone(2600, 0.06, 'sine', 0.05, 0.1); },
+  meow()  { this.tone(700, 0.35, 'sawtooth', 0.07, 0, 400); }
+};
+
+/* ============ CREATURES: ผีเสื้อ เต่าทอง นก อีกา แมว บินผ่านนาน ๆ ครั้ง (ข้อ 6) ============ */
+const Creatures = {
+  running: false, timer: null,
+  types: [
+    { e: '🦋', dur: 9000,  wave: 60, size: 2.0, sfx: null },
+    { e: '🐞', dur: 7000,  wave: 25, size: 1.5, sfx: null },
+    { e: '🐦', dur: 5000,  wave: 35, size: 2.2, sfx: 'chirp' },
+    { e: '🐦‍⬛', dur: 4500, wave: 45, size: 2.4, sfx: 'chirp' },
+    { e: '🐈', dur: 11000, wave: 0,  size: 2.6, sfx: 'meow', ground: true },
+    { e: '🕊️', dur: 6000,  wave: 30, size: 2.2, sfx: 'chirp' }
+  ],
+  start() {
+    if (State.config && State.config.creatures_enabled === false) return;
+    this.running = true;
+    this.schedule();
+  },
+  stop() { this.running = false; clearTimeout(this.timer); },
+  schedule() {
+    if (!this.running) return;
+    // ผ่านนาน ๆ ครั้ง: สุ่ม 14–40 วินาที
+    this.timer = setTimeout(() => { this.spawn(); this.schedule(); }, 14000 + Math.random() * 26000);
+  },
+  spawn() {
+    const t = this.types[Math.floor(Math.random() * this.types.length)];
+    const layer = document.getElementById('creature-layer');
+    const el = document.createElement('div');
+    el.className = 'creature';
+    el.textContent = t.e;
+    el.style.fontSize = t.size + 'rem';
+    const H = window.innerHeight, W = window.innerWidth;
+    const y0 = t.ground ? H - 70 : 80 + Math.random() * (H * 0.5);
+    const ltr = Math.random() > 0.5;
+    if (!ltr) el.style.transform = 'scaleX(-1)';
+    layer.appendChild(el);
+    if (t.sfx && Fx[t.sfx]) Fx[t.sfx]();
+    const start = performance.now();
+    const step = now => {
+      const p = (now - start) / t.dur;
+      if (p >= 1 || !el.isConnected) { el.remove(); return; }
+      const x = ltr ? -60 + p * (W + 120) : W + 60 - p * (W + 120);
+      const y = y0 + Math.sin(p * Math.PI * 5) * t.wave + (t.ground ? 0 : p * 30);
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+      requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+};
+</script>
+
+  <script>
+/* ============ AR: กล้องหลัง + เซ็นเซอร์เอียง = เครื่องวัดระยะทาง (ข้อ 1) ============
+ * หลักการฟิสิกส์/ตรีโกณมิติ:
+ *   ถือกล้องที่ความสูง h แล้วเล็ง crosshair ไปที่ "โคนเป้าบนพื้น"
+ *   มุมเอียงจากแนวดิ่ง = θ (จาก DeviceOrientation beta)
+ *   ระยะทางบนพื้น d = h × tan(θ)   ← นักเรียนได้เห็นตรีโกณใช้งานจริง!
+ */
+const Ar = {
+  stream: null,
+  beta: null,            // มุมเอียงหน้า-หลังของเครื่อง (0 = นอนราบ, 90 = ตั้งตรง)
+  sensorOk: false,
+  camOk: false,
+  _handler: null,
+
+  async startCamera() {
+    const video = $('ar-video');
+    try {
+      if (CamGate.blocked()) throw Object.assign(new Error('blocked by permissions policy'), { name: 'SecurityError' });
+      this.stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width: { ideal: 1280 } }, audio: false
+      });
+      video.srcObject = this.stream;
+      video.style.display = '';
+      $('ar-sim-bg').style.display = 'none';
+      this.camOk = true;
+    } catch (e) {
+      // ไม่มีกล้อง/ถูกบล็อก -> ฉากจำลอง เกมยังเล่นได้ครบ
+      this.camOk = false;
+      video.style.display = 'none';
+      $('ar-sim-bg').style.display = '';
+      if (CamGate.looksLikePolicyError(e) && !State.camGateDismissed) App.showCamGate();
+      else toast('ไม่สามารถเปิดกล้องได้ — ใช้ฉากจำลองแทน 🏞️');
+    }
+  },
+
+  stopCamera() {
+    if (this.stream) { this.stream.getTracks().forEach(t => t.stop()); this.stream = null; }
+    $('ar-video').srcObject = null;
+  },
+
+  async startSensors() {
+    // iOS 13+ ต้องขอ permission จาก user gesture
+    try {
+      if (typeof DeviceOrientationEvent !== 'undefined' &&
+          typeof DeviceOrientationEvent.requestPermission === 'function') {
+        const res = await DeviceOrientationEvent.requestPermission();
+        if (res !== 'granted') { this.sensorOk = false; return; }
+      }
+    } catch (e) { /* ต้องเรียกจาก gesture — ปล่อยผ่าน ลอง listen ตรง ๆ */ }
+    this._handler = ev => {
+      if (ev.beta != null) { this.beta = ev.beta; this.sensorOk = true; }
+    };
+    window.addEventListener('deviceorientation', this._handler);
+  },
+
+  stopSensors() {
+    if (this._handler) window.removeEventListener('deviceorientation', this._handler);
+    this._handler = null;
+  },
+
+  /** ระยะทางแนวราบจากมุมเอียง: d = h·tan(β), β = มุมแกนกล้องจากแนวดิ่ง */
+  currentDistance() {
+    if (!this.sensorOk || this.beta == null) return null;
+    const b = Math.max(2, Math.min(84, Math.abs(this.beta))); // กัน tan ระเบิด
+    return State.camHeight * Math.tan(b * Math.PI / 180);
+  },
+
+  calibrate() {
+    const v = prompt('ความสูงของกล้องจากพื้น (เมตร)\nเช่น ยืนถือมือถือระดับสายตา ≈ 1.5', State.camHeight);
+    const h = parseFloat(v);
+    if (h > 0.3 && h < 3) {
+      State.camHeight = h;
+      localStorage.setItem('cam_height', String(h));
+      toast('ตั้งความสูงกล้อง ' + h + ' m แล้ว');
+    }
+  },
+
+  /* readout loop สำหรับโหมดวัดระยะ */
+  _rangeLoop: null,
+  showRangefinder(onUpdate) {
+    $('crosshair').style.display = '';
+    $('range-readout').style.display = '';
+    const loop = () => {
+      const d = this.currentDistance();
+      const el = $('range-readout');
+      if (d != null) {
+        el.innerHTML = fmt(d, 1) + ' <span class="u">m</span>';
+        el.style.color = ''; el.style.opacity = 1;
+      } else {
+        el.innerHTML = '— <span class="u">เอียงมือถือเล็งพื้น</span>';
+        el.style.opacity = .7;
+      }
+      if (onUpdate) onUpdate(d);
+      this._rangeLoop = requestAnimationFrame(loop);
+    };
+    loop();
+  },
+  hideRangefinder() {
+    cancelAnimationFrame(this._rangeLoop);
+    $('crosshair').style.display = 'none';
+    $('range-readout').style.display = 'none';
+  }
+};
+</script>
+
+  <script>
+/* ============ GAME ENGINE: โพรเจกไทล์ (4.1, 4.3, 5) + วัดระยะมาร์คจุด (4.2) ============
+ * ฟิสิกส์: x" = -(k/m)·v·vx ,  y" = -g -(k/m)·v·vy
+ * มี "แรงต้านอากาศ" ทำให้มวล m มีผลจริง (ลูกเบา → ตกสั้นกว่า) — ประเด็นสอนฟิสิกส์ชั้นดี
+ */
+const Game = {
+  mode: null,           // 'projectile' | 'distance'
+  matchInfo: null,      // {matchId, seed, rounds} เมื่อเล่นแบบแข่ง
+  running: false,
+  cv: null, cx: null, W: 0, H: 0,
+  faceImg: null,
+
+  // projectile state
+  angle: 45, speed: 14, mass: 1.0, targetDist: 15,
+  ammo: 0, shots: 0, hits: 0, bullseyes: 0, score: 0,
+  round: 0, rounds: 1, roundDists: [],
+  proj: null, particles: [], overState: false,
+
+  // distance-mode state
+  mission: null, missionNo: 0, missionResults: [],
+  markedFlag: null,
+
+  DRAG_K: 0.035,        // สัมประสิทธิ์แรงต้านอากาศ (N·s²/m²)
+
+  /* ---------- lifecycle ---------- */
+  async init(mode, opts = {}) {
+    this.mode = mode;
+    this.matchInfo = opts.match || null;
+    this.overState = false;
+    this.cv = $('ar-canvas'); this.cx = this.cv.getContext('2d');
+    this.resize(); window.addEventListener('resize', this._rz = () => this.resize());
+    this.bindUI();
+    this.loadFace();
+    const cfg = State.config;
+
+    showScreen('ar');
+    await Ar.startCamera();
+    await Ar.startSensors();
+    Creatures.start();
+
+    $('hud-ammo-wrap').firstElementChild.textContent = mode === 'projectile' ? 'กระสุน' : 'ภารกิจ';
+    if (mode === 'projectile') {
+      $('panel-sliders').style.display = '';
+      $('fire-row').style.display = '';
+      $('range-row').style.display = 'none';
+      Ar.hideRangefinder();
+      this.ammo = Math.max(1, Math.round(cfg.ammo_per_game));
+      this.shots = 0; this.hits = 0; this.bullseyes = 0; this.score = 0;
+      this.rounds = Math.max(1, Math.round(cfg.match_rounds));
+      this.round = 0;
+      // สุ่มระยะเป้าแต่ละรอบ — ถ้าเป็นแมตช์ใช้ seed เดียวกับคู่แข่ง
+      const rng = this.matchInfo ? seededRng(this.matchInfo.seed) : Math.random.bind(Math);
+      this.roundDists = Array.from({ length: this.rounds }, () => 8 + rng() * 22);
+      this.targetDist = this.roundDists[0];
+      $('sl-dist').value = this.targetDist;
+      $('sl-dist').disabled = !!this.matchInfo;   // แมตช์: ระยะถูกล็อกโดยโจทย์กลาง
+      this.showMission(this.matchInfo
+        ? '⚔️ <b>โหมดดวล</b> — เป้า ' + this.rounds + ' จุด โจทย์เดียวกับคู่แข่ง ใครแม่นกว่าชนะ!'
+        : '🎯 ยิงเป้าให้ครบ <b>' + this.rounds + ' จุด</b> ด้วยกระสุน <b>' + this.ammo + ' นัด</b> — เหลือกระสุน = โบนัส!');
+      this.proj = null;
+    } else { // distance
+      $('panel-sliders').style.display = 'none';
+      $('fire-row').style.display = 'none';
+      $('range-row').style.display = '';
+      this.ammo = 0;
+      this.score = 0; this.missionNo = 0; this.missionResults = [];
+      this.markedFlag = null;
+      Ar.showRangefinder();
+      if (!Ar.sensorOk) setTimeout(() => {
+        if (!Ar.sensorOk) toast('ไม่พบเซ็นเซอร์เอียง — จะใช้ระยะสุ่มจำลองแทนตอนมาร์ค', 3500);
+      }, 1500);
+      this.nextMission();
+    }
+    this.updateHud();
+    this.running = true;
+    requestAnimationFrame(t => this.loop(t));
+  },
+
+  destroy() {
+    this.running = false;
+    window.removeEventListener('resize', this._rz);
+    Ar.stopCamera(); Ar.stopSensors(); Ar.hideRangefinder();
+    Creatures.stop();
+    this.proj = null; this.particles = [];
+    $('mission-banner').style.display = 'none';
+  },
+
+  resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    this.W = window.innerWidth; this.H = window.innerHeight;
+    this.cv.width = this.W * dpr; this.cv.height = this.H * dpr;
+    this.cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  },
+
+  bindUI() {
+    if (this._bound) return; this._bound = true;
+    const link = (id, key, fmt2) => {
+      $(id).addEventListener('input', e => {
+        this[key] = parseFloat(e.target.value);
+        $('v-' + id.slice(3)).textContent = fmt2(this[key]);
+        Fx.tick();
+      });
+    };
+    link('sl-angle', 'angle', v => v + '°');
+    link('sl-speed', 'speed', v => fmt(v, 1) + ' m/s');
+    link('sl-mass', 'mass', v => fmt(v, 1) + ' kg');
+    link('sl-dist', 'targetDist', v => fmt(v, 1) + ' m');
+  },
+
+  loadFace() {
+    this.faceImg = null;
+    if (State.profile && State.profile.photo) {
+      const im = new Image();
+      im.onload = () => { this.faceImg = im; };
+      im.src = State.profile.photo;
+    }
+  },
+
+  togglePanel() { $('ar-panel').classList.toggle('collapsed'); },
+
+  showMission(html) {
+    const b = $('mission-banner');
+    b.innerHTML = html; b.style.display = '';
+  },
+
+  updateHud() {
+    $('hud-score').textContent = this.score;
+    const wrap = $('ammo-dots'); wrap.innerHTML = '';
+    if (this.mode === 'projectile') {
+      const total = Math.max(1, Math.round(State.config.ammo_per_game));
+      for (let i = 0; i < total; i++) {
+        const d = document.createElement('div');
+        d.className = 'ammo-dot' + (i < total - this.ammo ? ' used' : '');
+        wrap.appendChild(d);
+      }
+    } else {
+      for (let i = 0; i < 3; i++) {
+        const d = document.createElement('div');
+        d.className = 'ammo-dot' + (i < this.missionNo - (this.markedFlag ? 0 : 1) + 0 ? ' used' : '');
+        wrap.appendChild(d);
+      }
+    }
+  },
+
+  /* ---------- world mapping (โพรเจกไทล์) ---------- */
+  groundY() { return this.H * 0.78; },
+  pxm() {
+    const worldW = Math.max(this.targetDist * 1.28, 12);
+    return (this.W - 88) / worldW;
+  },
+  toX(m) { return 44 + m * this.pxm(); },
+  toY(m) { return this.groundY() - m * this.pxm(); },
+
+  /* ---------- physics ---------- */
+  simStep(p, dt) {
+    const g = State.config.gravity || 9.8;
+    const v = Math.hypot(p.vx, p.vy) || 1e-6;
+    const aDrag = this.DRAG_K * v / this.mass; // (k/m)·v — คูณกับ vx,vy = k·v·v̂/m
+    p.vx += (-aDrag * p.vx) * dt;
+    p.vy += (-g - aDrag * p.vy) * dt;
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+  },
+
+  fire() {
+    if (this.mode !== 'projectile' || this.proj || this.ammo <= 0 || this.overState) return;
+    Fx.shoot();
+    this.ammo--; this.shots++;
+    const rad = this.angle * Math.PI / 180;
+    this.proj = {
+      x: 0, y: 0.35,
+      vx: this.speed * Math.cos(rad),
+      vy: this.speed * Math.sin(rad),
+      t: 0, trail: []
+    };
+    this.updateHud();
+  },
+
+  useMeasuredDistance() {
+    // ดึงระยะที่วัดจาก AR rangefinder ล่าสุดมาเป็นระยะเป้า (เชื่อมโลกจริงเข้าเกม)
+    if (this.matchInfo) { toast('โหมดดวลล็อกระยะตามโจทย์กลาง'); return; }
+    const d = State.measuredDist;
+    if (d == null) { toast('ยังไม่มีค่าที่วัด — ไปโหมด "วัดระยะ AR" เพื่อวัดก่อน 📏'); return; }
+    this.targetDist = Math.max(5, Math.min(40, d));
+    $('sl-dist').value = this.targetDist;
+    $('v-dist').textContent = fmt(this.targetDist, 1) + ' m';
+    toast('ตั้งเป้าที่ระยะจริง ' + fmt(this.targetDist, 1) + ' m แล้ว 🎯');
+  },
+
+  /* ---------- hit / round flow ---------- */
+  resolveCross(yAtTarget) {
+    const cfg = State.config;
+    const BOARD_H = 0.9, CENTER = 0.45;
+    if (yAtTarget >= 0 && yAtTarget <= BOARD_H) {
+      const off = Math.abs(yAtTarget - CENTER);
+      const isBull = off < 0.15;
+      this.hits++;
+      let pts = Math.round(cfg.hit_points);
+      if (isBull) { this.bullseyes++; pts += Math.round(cfg.bullseye_bonus); }
+      this.score += pts;
+      this.burst(this.toX(this.targetDist), this.toY(yAtTarget), isBull ? '#fbbf24' : '#22d3ee', 42);
+      $('hit-flash').classList.remove('go'); void $('hit-flash').offsetWidth; $('hit-flash').classList.add('go');
+      this.bigMsg(isBull ? '🎯 กลางเป้า! +' + pts : '💥 โดนเป้า! +' + pts, isBull ? '#fbbf24' : '#22d3ee');
+      isBull ? Fx.bullseye() : Fx.hit();
+      this.updateHud();
+      setTimeout(() => this.nextRound(), 1400);
+      return true;
+    }
+    return false;
+  },
+
+  landMiss(xLand) {
+    this.burst(this.toX(xLand), this.groundY(), '#94a3b8', 16);
+    Fx.miss();
+    const diff = xLand - this.targetDist;
+    this.bigMsg(Math.abs(diff) < 1.2 ? '😖 เฉียดมาก!' : (diff < 0 ? '↩️ สั้นไป ' + fmt(-diff, 1) + ' m' : '↪️ ไกลไป ' + fmt(diff, 1) + ' m'), '#f87171');
+    if (this.ammo <= 0) setTimeout(() => this.endProjectile(), 1500);
+  },
+
+  nextRound() {
+    this.round++;
+    if (this.round >= this.rounds || this.ammo <= 0) { this.endProjectile(); return; }
+    this.targetDist = this.roundDists[this.round];
+    $('sl-dist').value = this.targetDist;
+    $('v-dist').textContent = fmt(this.targetDist, 1) + ' m';
+    this.showMission('🎯 เป้าที่ ' + (this.round + 1) + '/' + this.rounds + ' — ระยะ <b>' + fmt(this.targetDist, 1) + ' m</b>');
+  },
+
+  endProjectile() {
+    if (this.overState) return; this.overState = true;
+    const cfg = State.config;
+    const unusedBonus = this.ammo * Math.round(cfg.unused_ammo_bonus);
+    this.score += unusedBonus;
+    const acc = this.shots ? Math.round(this.hits / this.shots * 100) : 0;
+    Fx.fanfare();
+    const stats = {
+      mode: 'projectile', score: this.score, hits: this.hits, shots: this.shots,
+      accuracy: acc, bullseyes: this.bullseyes, unusedBonus, unusedAmmo: this.ammo
+    };
+    setTimeout(() => {
+      this.destroy();
+      if (this.matchInfo) App.finishMatchGame(stats);
+      else App.showResult(stats);
+    }, 900);
+  },
+
+  /* ---------- distance mode (4.2) ---------- */
+  nextMission() {
+    this.missionNo++;
+    if (this.missionNo > 3) { this.endDistance(); return; }
+    const g = State.config.gravity || 9.8;
+    // u 5–11 m/s -> R ประมาณ 2–12 m : พอดีขนาดสนาม/ห้องเรียน และไม่เกินพิสัยของ rangefinder มุมเอียง
+    const u = 5 + Math.random() * 6;
+    const th = 25 + Math.floor(Math.random() * 41);        // 25–65°
+    const R = u * u * Math.sin(2 * th * Math.PI / 180) / g;
+    this.mission = { u: Math.round(u * 10) / 10, th, R };
+    this.markedFlag = null;
+    $('btn-mark').disabled = false;
+    $('btn-mark').textContent = '📍 มาร์คจุดนี้';
+    this.showMission(
+      '📏 <b>ภารกิจ ' + this.missionNo + '/3</b> — ยิงโพรเจกไทล์ u = <b>' + this.mission.u +
+      ' m/s</b>, θ = <b>' + th + '°</b> จะตกไกลเท่าไร?<br>' +
+      '<span class="small">คำนวณ R = u²·sin2θ/g ในใจ แล้วเล็ง crosshair ไปที่พื้นตรงระยะนั้น กด "มาร์คจุดนี้"</span>');
+    this.updateHud();
+  },
+
+  markPoint() {
+    if (!this.mission || this.markedFlag) return;
+    let d = Ar.currentDistance();
+    if (d == null) d = 2 + Math.random() * 12; // ไม่มีเซ็นเซอร์ → จำลอง
+    const cfg = State.config;
+    const err = Math.abs(d - this.mission.R);
+    const tol = cfg.distance_tolerance_m;
+    // คะแนน: เต็มถ้า err<=tol, ลดเชิงเส้นถึง 0 ที่ 4×tol
+    const frac = Math.max(0, 1 - Math.max(0, err - tol) / (tol * 3));
+    const pts = Math.round(cfg.distance_points * frac);
+    this.score += pts;
+    this.markedFlag = { d, err, pts };
+    this.missionResults.push({ ...this.mission, marked: d, err, pts });
+    if (frac >= 0.99) { Fx.bullseye(); this.bigMsg('🏁 เป๊ะมาก! +' + pts, '#a3e635'); }
+    else if (pts > 0) { Fx.hit(); this.bigMsg('👍 คลาด ' + fmt(err, 2) + ' m +' + pts, '#22d3ee'); }
+    else { Fx.miss(); this.bigMsg('❌ คลาด ' + fmt(err, 2) + ' m', '#f87171'); }
+    this.showMission(
+      '✅ คำตอบจริง R = <b>' + fmt(this.mission.R, 2) + ' m</b> | คุณมาร์คที่ <b>' + fmt(d, 2) +
+      ' m</b> (คลาด ' + fmt(err, 2) + ' m)<br><span class="small">🚶 เดินไปยืนที่จุดที่มาร์คไว้ แล้วกดปุ่มเพื่อทำภารกิจถัดไป</span>');
+    $('btn-mark').textContent = this.missionNo < 3 ? '🚶 ถึงจุดแล้ว → ภารกิจถัดไป' : '🏁 จบภารกิจ';
+    // กันกดรัว: ปิดปุ่มสั้น ๆ แล้วเปิดใหม่ (ปุ่มเดิมสลับหน้าที่ผ่าน markedFlag)
+    const btn = $('btn-mark');
+    btn.disabled = true;
+    setTimeout(() => { btn.disabled = false; }, 800);
+    this.updateHud();
+  },
+
+  endDistance() {
+    Fx.fanfare();
+    const avgErr = this.missionResults.length
+      ? this.missionResults.reduce((s, m) => s + m.err, 0) / this.missionResults.length : 0;
+    const stats = {
+      mode: 'distance', score: this.score, hits: this.missionResults.filter(m => m.pts > 0).length,
+      shots: this.missionResults.length, accuracy: Math.round(Math.max(0, 100 - avgErr * 20)),
+      avgErr: fmt(avgErr, 2)
+    };
+    this.destroy();
+    App.showResult(stats);
+  },
+
+  /* ---------- fx ---------- */
+  burst(x, y, color, n) {
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2, sp = 60 + Math.random() * 240;
+      this.particles.push({
+        x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 80,
+        life: 0.6 + Math.random() * 0.7, age: 0, color, size: 2 + Math.random() * 4
+      });
+    }
+  },
+  bigMsg(txt, color) {
+    const el = $('big-msg');
+    el.textContent = txt; el.style.color = color || '#fff';
+    el.classList.remove('go'); void el.offsetWidth; el.classList.add('go');
+  },
+
+  /* ---------- render loop ---------- */
+  _last: 0,
+  loop(t) {
+    if (!this.running) return;
+    const dt = Math.min((t - this._last) / 1000, 0.05); this._last = t;
+    const cx = this.cx;
+    cx.clearRect(0, 0, this.W, this.H);
+
+    if (this.mode === 'projectile') this.drawProjectileScene(cx, dt);
+    else this.drawDistanceScene(cx);
+
+    // particles
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      const p = this.particles[i];
+      p.age += dt;
+      if (p.age > p.life) { this.particles.splice(i, 1); continue; }
+      p.vy += 300 * dt;
+      p.x += p.vx * dt; p.y += p.vy * dt;
+      cx.globalAlpha = 1 - p.age / p.life;
+      cx.fillStyle = p.color;
+      cx.beginPath(); cx.arc(p.x, p.y, p.size, 0, 7); cx.fill();
+    }
+    cx.globalAlpha = 1;
+    requestAnimationFrame(tt => this.loop(tt));
+  },
+
+  drawProjectileScene(cx, dt) {
+    const gy = this.groundY(), pxm = this.pxm();
+
+    // พื้น + ไม้บรรทัดวัดระยะ (ตอกย้ำเรื่อง "วัดระยะทาง")
+    cx.fillStyle = 'rgba(6,10,24,.35)';
+    cx.fillRect(0, gy, this.W, this.H - gy);
+    cx.strokeStyle = 'rgba(255,255,255,.75)'; cx.lineWidth = 2;
+    cx.beginPath(); cx.moveTo(0, gy); cx.lineTo(this.W, gy); cx.stroke();
+    cx.font = '11px Prompt, sans-serif'; cx.textAlign = 'center';
+    const stepM = this.targetDist > 24 ? 10 : 5;
+    for (let m = 0; m <= (this.W - 88) / pxm + 1; m += stepM) {
+      const x = this.toX(m);
+      cx.strokeStyle = 'rgba(255,255,255,.5)';
+      cx.beginPath(); cx.moveTo(x, gy); cx.lineTo(x, gy + 10); cx.stroke();
+      cx.fillStyle = 'rgba(255,255,255,.8)';
+      cx.fillText(m + ' m', x, gy + 24);
+    }
+
+    // ปืนใหญ่
+    const lx = this.toX(0), ly = this.toY(0.35);
+    cx.save();
+    cx.translate(lx, ly);
+    cx.rotate(-this.angle * Math.PI / 180);
+    const barrel = Math.max(30, pxm * 1.1);
+    const grd = cx.createLinearGradient(0, 0, barrel, 0);
+    grd.addColorStop(0, '#475569'); grd.addColorStop(1, '#94a3b8');
+    cx.fillStyle = grd;
+    cx.fillRect(0, -6, barrel, 12);
+    cx.restore();
+    cx.fillStyle = '#334155';
+    cx.beginPath(); cx.arc(lx, ly + 6, 14, 0, 7); cx.fill();
+    cx.fillStyle = '#22d3ee';
+    cx.beginPath(); cx.arc(lx, ly, 8, 0, 7); cx.fill();
+
+    // เส้นเล็งช่วงต้น (ครึ่งวิแรก — ช่วยเล็งแต่ไม่เฉลยจุดตก)
+    if (!this.proj && this.ammo > 0 && !this.overState) {
+      const rad = this.angle * Math.PI / 180;
+      const sim = { x: 0, y: 0.35, vx: this.speed * Math.cos(rad), vy: this.speed * Math.sin(rad) };
+      cx.fillStyle = 'rgba(163,230,53,.8)';
+      for (let i = 0; i < 12; i++) {
+        for (let k = 0; k < 4; k++) this.simStep(sim, 0.0125);
+        if (i % 2 === 0) { cx.beginPath(); cx.arc(this.toX(sim.x), this.toY(sim.y), 3, 0, 7); cx.fill(); }
+      }
+    }
+
+    // เป้า (กระดานยิงธนูตั้งพื้น)
+    const tx = this.toX(this.targetDist);
+    const bh = 0.9 * pxm;
+    cx.fillStyle = '#78350f';
+    cx.fillRect(tx - 3, gy - bh, 6, bh);
+    const rings = [[0.45, '#fff'], [0.34, '#f87171'], [0.23, '#fff'], [0.13, '#f87171'], [0.055, '#fbbf24']];
+    rings.forEach(([r, c]) => {
+      cx.fillStyle = c;
+      cx.beginPath(); cx.arc(tx, gy - 0.45 * pxm, r * pxm, 0, 7); cx.fill();
+    });
+    cx.fillStyle = 'rgba(255,255,255,.9)';
+    cx.font = 'bold 13px Prompt, sans-serif';
+    cx.fillText(fmt(this.targetDist, 1) + ' m', tx, gy - bh - 10);
+
+    // โพรเจกไทล์ (หน้าผู้เล่น!)
+    if (this.proj) {
+      const p = this.proj;
+      const sub = 4;
+      for (let i = 0; i < sub; i++) {
+        const px = p.x;
+        this.simStep(p, dt / sub);
+        // ข้ามระนาบเป้า? (sub-step เล็กพอ ใช้ y ณ จุดข้ามได้เลย)
+        if (px < this.targetDist && p.x >= this.targetDist) {
+          if (this.resolveCross(p.y)) { this.proj = null; break; }
+        }
+        if (p.y <= 0 && p.vy < 0) { // ตกพื้น
+          this.landMiss(p.x);
+          this.proj = null; break;
+        }
+      }
+      if (this.proj) {
+        const p2 = this.proj;
+        p2.trail.push([this.toX(p2.x), this.toY(p2.y)]);
+        if (p2.trail.length > 26) p2.trail.shift();
+        cx.strokeStyle = 'rgba(34,211,238,.55)'; cx.lineWidth = 2.5;
+        cx.beginPath();
+        p2.trail.forEach(([x, y], i) => i ? cx.lineTo(x, y) : cx.moveTo(x, y));
+        cx.stroke();
+        const bx = this.toX(p2.x), by = this.toY(p2.y);
+        const r = Math.max(10, 0.16 * pxm);
+        cx.save();
+        cx.beginPath(); cx.arc(bx, by, r, 0, 7); cx.clip();
+        if (this.faceImg) cx.drawImage(this.faceImg, bx - r, by - r, r * 2, r * 2);
+        else {
+          const g2 = cx.createRadialGradient(bx - r / 3, by - r / 3, 1, bx, by, r);
+          g2.addColorStop(0, '#fca5a5'); g2.addColorStop(1, '#dc2626');
+          cx.fillStyle = g2; cx.fill();
+        }
+        cx.restore();
+        cx.strokeStyle = '#fff'; cx.lineWidth = 2;
+        cx.beginPath(); cx.arc(bx, by, r, 0, 7); cx.stroke();
+      }
+    }
+  },
+
+  drawDistanceScene(cx) {
+    // เส้นกริดพื้น AR จาง ๆ ให้ความรู้สึกมิติ
+    const gy = this.H * 0.6;
+    cx.strokeStyle = 'rgba(163,230,53,.18)'; cx.lineWidth = 1;
+    for (let i = 0; i < 8; i++) {
+      const y = gy + (this.H - gy) * (i / 8) ** 1.6;
+      cx.beginPath(); cx.moveTo(0, y); cx.lineTo(this.W, y); cx.stroke();
+    }
+    for (let i = 0; i <= 10; i++) {
+      const x = this.W * i / 10;
+      cx.beginPath(); cx.moveTo(this.W / 2 + (x - this.W / 2) * 0.25, gy); cx.lineTo(x, this.H); cx.stroke();
+    }
+    // ธงจุดที่มาร์ค
+    if (this.markedFlag) {
+      const fx = this.W / 2, fy = this.H * 0.62;
+      cx.font = '42px serif'; cx.textAlign = 'center';
+      cx.fillText('🚩', fx, fy);
+      cx.font = 'bold 15px Prompt, sans-serif';
+      cx.fillStyle = '#a3e635';
+      cx.fillText(fmt(this.markedFlag.d, 2) + ' m', fx, fy + 22);
+      // วงแหวนกระเพื่อม
+      const t = (performance.now() / 900) % 1;
+      cx.strokeStyle = 'rgba(163,230,53,' + (1 - t) * 0.7 + ')';
+      cx.lineWidth = 2;
+      cx.beginPath(); cx.ellipse(fx, fy + 8, 30 + t * 60, (30 + t * 60) * 0.35, 0, 0, 7); cx.stroke();
+    }
+  }
+};
+
+/* ปุ่มมาร์ค: ครั้งแรก = มาร์คจุด, ครั้งถัดไป = ไปภารกิจต่อ */
+(function () {
+  const orig = Game.markPoint.bind(Game);
+  Game.markPoint = function () {
+    if (Game.markedFlag) { Game.nextMission(); return; }
+    orig();
+  };
+})();
+</script>
+
+  <script>
+/* ============ FORMULA GAME: เรียงสูตรการเคลื่อนที่ (ข้อ 7) ============
+ * ง่าย: สูตรสั้น ไม่มีตัวหลอก | ยาก: สูตรยาว + ตัวหลอก + แทนค่าตัวเลข
+ * แตะกระเบื้อง -> ลงช่องว่างถัดไป, แตะช่อง -> คืนกระเบื้อง
+ */
+const Formula = {
+  diff: 'easy', qs: [], qi: 0, score: 0,
+  t0: 0, qT0: 0, timer: null, slots: [], answer: null,
+
+  BANK: {
+    easy: [
+      { prompt: 'กฎข้อ 2 ของนิวตัน (แรง)', seq: ['F', '=', 'm', '·', 'a'], blanks: ['F', 'm', 'a'] },
+      { prompt: 'น้ำหนักของวัตถุ', seq: ['W', '=', 'm', '·', 'g'], blanks: ['W', 'm', 'g'] },
+      { prompt: 'โมเมนตัม', seq: ['p', '=', 'm', '·', 'v'], blanks: ['p', 'm', 'v'] },
+      { prompt: 'สมการความเร็ว (การเคลื่อนที่แนวตรง)', seq: ['v', '=', 'u', '+', 'a', '·', 't'], blanks: ['v', 'u', 'a', 't'] },
+      { prompt: 'ความเร่งเฉลี่ย', seq: ['a', '=', '(v−u)', '/', 't'], blanks: ['a', '(v−u)', 't'] }
+    ],
+    hard: [
+      { prompt: 'สมการการกระจัด (การเคลื่อนที่แนวตรง)', seq: ['s', '=', 'u·t', '+', '½', '·', 'a', '·', 't²'], blanks: ['s', 'u·t', '½', 'a', 't²'], distract: ['v²', '2·a·s'] },
+      { prompt: 'สมการความเร็ว-การกระจัด (ไม่มีเวลา)', seq: ['v²', '=', 'u²', '+', '2', '·', 'a', '·', 's'], blanks: ['v²', 'u²', '2', 'a', 's'], distract: ['t²', '½'] },
+      {
+        prompt: 'เรียงสูตร แล้วแทนค่า: u = 2 m/s, a = 3 m/s², t = 4 s',
+        seq: ['v', '=', 'u', '+', 'a', '·', 't'], blanks: ['v', 'u', 'a', 't'], distract: ['s', 'g'],
+        numeric: { q: 'ดังนั้น v = 2 + 3×4 = ?', answer: '14', options: ['14', '20', '9', '24'] }
+      },
+      {
+        prompt: 'เรียงสูตร แล้วแทนค่า: m = 5 kg, a = 2 m/s²',
+        seq: ['F', '=', 'm', '·', 'a'], blanks: ['F', 'm', 'a'], distract: ['g', 'v'],
+        numeric: { q: 'ดังนั้น F = 5×2 = ? N', answer: '10', options: ['10', '7', '25', '3'] }
+      },
+      {
+        prompt: 'เรียงสูตร แล้วแทนค่า: u = 0, a = 10 m/s², t = 2 s',
+        seq: ['s', '=', 'u·t', '+', '½', '·', 'a', '·', 't²'], blanks: ['s', 'u·t', '½', 'a', 't²'], distract: ['v', '2·a·s'],
+        numeric: { q: 'ดังนั้น s = 0 + ½×10×4 = ? m', answer: '20', options: ['20', '40', '10', '80'] }
+      }
+    ]
+  },
+
+  pickDiff(el) {
+    document.querySelectorAll('.diff-pick').forEach(d => d.classList.remove('sel'));
+    el.classList.add('sel');
+    this.diff = el.dataset.d;
+    Fx.tick();
+  },
+
+  start() {
+    this.qs = [...this.BANK[this.diff]].sort(() => Math.random() - 0.5);
+    this.qi = 0; this.score = 0; this.t0 = Date.now();
+    $('fml-setup').style.display = 'none';
+    $('fml-game').style.display = '';
+    $('fml-total').textContent = this.qs.length;
+    Creatures.start();
+    clearInterval(this.timer);
+    this.timer = setInterval(() => {
+      $('fml-time').textContent = Math.floor((Date.now() - this.t0) / 1000);
+    }, 500);
+    this.loadQ();
+  },
+
+  loadQ() {
+    const q = this.qs[this.qi];
+    this.qT0 = Date.now();
+    this.answer = null;
+    $('fml-no').textContent = this.qi + 1;
+    $('fml-score').textContent = this.score;
+    $('fml-quest').textContent = q.prompt;
+
+    // สร้างช่อง: blank สำหรับตัวแปร, fixed สำหรับ = + · /
+    const slotRow = $('fml-slots');
+    slotRow.innerHTML = '';
+    this.slots = [];
+    q.seq.forEach(tok => {
+      const el = document.createElement('div');
+      if (q.blanks.includes(tok) && !this.slots.some(s => s.expected === tok && !s.dup)) {
+        el.className = 'slot';
+        const s = { el, expected: tok, value: null };
+        el.onclick = () => this.unslot(s);
+        this.slots.push(s);
+      } else if (q.blanks.includes(tok)) {
+        // token ซ้ำ (ไม่มีในชุดปัจจุบัน แต่กันไว้)
+        el.className = 'slot';
+        const s = { el, expected: tok, value: null, dup: true };
+        el.onclick = () => this.unslot(s);
+        this.slots.push(s);
+      } else {
+        el.className = 'slot fixed';
+        el.textContent = tok;
+      }
+      slotRow.appendChild(el);
+    });
+
+    // ตัวเลือกตอบตัวเลข (โหมดยาก)
+    const numq = $('fml-numq');
+    if (q.numeric) {
+      numq.style.display = '';
+      numq.innerHTML = '<b style="color:var(--amber)">' + q.numeric.q + '</b><div class="tile-bank" id="num-opts"></div>';
+    } else { numq.style.display = 'none'; numq.innerHTML = ''; }
+
+    // กระเบื้อง: ตัวถูก + ตัวหลอก สลับตำแหน่ง
+    const bank = $('fml-bank');
+    bank.innerHTML = '';
+    const tiles = [...q.blanks, ...(q.distract || [])].sort(() => Math.random() - 0.5);
+    tiles.forEach(tok => {
+      const t = document.createElement('div');
+      t.className = 'tile'; t.textContent = tok;
+      t.onclick = () => this.place(tok, t);
+      bank.appendChild(t);
+    });
+  },
+
+  place(tok, tileEl) {
+    const empty = this.slots.find(s => s.value === null);
+    if (!empty) return;
+    empty.value = tok; empty.tileEl = tileEl;
+    empty.el.textContent = tok;
+    empty.el.classList.add('filled');
+    empty.el.classList.remove('bad');
+    tileEl.classList.add('used');
+    Fx.tick();
+    // ถ้าเต็มแล้วและมีคำถามตัวเลข -> แสดงตัวเลือก
+    if (!this.slots.some(s => s.value === null)) this.showNumericOptions();
+  },
+
+  unslot(s) {
+    if (s.value === null) return;
+    s.el.textContent = ''; s.el.classList.remove('filled', 'good', 'bad');
+    if (s.tileEl) s.tileEl.classList.remove('used');
+    s.value = null; s.tileEl = null;
+    Fx.tick();
+  },
+
+  showNumericOptions() {
+    const q = this.qs[this.qi];
+    if (!q.numeric) return;
+    const wrap = document.getElementById('num-opts');
+    if (!wrap || wrap.childElementCount) return;
+    [...q.numeric.options].sort(() => Math.random() - 0.5).forEach(op => {
+      const t = document.createElement('div');
+      t.className = 'tile'; t.textContent = op;
+      t.style.color = 'var(--amber)';
+      t.onclick = () => {
+        wrap.querySelectorAll('.tile').forEach(x => x.style.outline = '');
+        t.style.outline = '2px solid var(--amber)';
+        this.answer = op;
+        Fx.tick();
+      };
+      wrap.appendChild(t);
+    });
+  },
+
+  clearSlots() {
+    this.slots.forEach(s => this.unslot(s));
+    this.answer = null;
+    const wrap = document.getElementById('num-opts');
+    if (wrap) wrap.querySelectorAll('.tile').forEach(x => x.style.outline = '');
+  },
+
+  check() {
+    const q = this.qs[this.qi];
+    if (this.slots.some(s => s.value === null)) { toast('เติมให้ครบทุกช่องก่อนนะ 🧩'); return; }
+    if (q.numeric && !this.answer) { toast('เลือกคำตอบตัวเลขด้วย 🔢'); return; }
+
+    let allGood = true;
+    this.slots.forEach(s => {
+      const ok = s.value === s.expected;
+      s.el.classList.toggle('good', ok);
+      s.el.classList.toggle('bad', !ok);
+      if (!ok) allGood = false;
+    });
+    if (q.numeric && this.answer !== q.numeric.answer) allGood = false;
+
+    if (allGood) {
+      const cfg = State.config;
+      const secs = (Date.now() - this.qT0) / 1000;
+      const bonus = Math.round(Math.max(0, cfg.time_bonus_max * (1 - secs / 45)));
+      const pts = Math.round(cfg.formula_points) + bonus;
+      this.score += pts;
+      $('fml-score').textContent = this.score;
+      Fx.good();
+      toast('✅ ถูกต้อง! +' + pts + (bonus ? ' (โบนัสเวลา ' + bonus + ')' : ''));
+      setTimeout(() => {
+        this.qi++;
+        if (this.qi >= this.qs.length) this.end();
+        else this.loadQ();
+      }, 1100);
+    } else {
+      Fx.bad();
+      toast('❌ ยังไม่ถูก ลองสลับดูใหม่');
+    }
+  },
+
+  end() {
+    clearInterval(this.timer);
+    Creatures.stop();
+    Fx.fanfare();
+    const secs = Math.floor((Date.now() - this.t0) / 1000);
+    App.showResult({
+      mode: 'formula', difficulty: this.diff, score: this.score,
+      hits: this.qs.length, shots: this.qs.length, accuracy: 100, time: secs
+    });
+    // รีเซ็ตหน้าจอไว้สำหรับรอบหน้า
+    $('fml-setup').style.display = '';
+    $('fml-game').style.display = 'none';
+  }
+};
+</script>
+
+  <script>
+/* ============ APP CONTROLLER: โปรไฟล์ / นำทาง / จับคู่ / ผลคะแนน ============ */
+const App = {
+  selfieStream: null,
+  lbData: null,
+  _mmPoll: null, _oppPoll: null,
+
+  /* ---------- boot ---------- */
+  async boot() {
+    loadProfile();
+    try {
+      State.config = await GS.call('getGameConfig');
+    } catch (e) {
+      State.config = await MockServer.getGameConfig();
+      toast('โหลดค่าจากเซิร์ฟเวอร์ไม่ได้ ใช้ค่าเริ่มต้น');
+    }
+    this.renderRules();
+    if (!GS.isLive && !API_URL) {
+      toast('🧪 โหมดเดโม — คะแนนเก็บในเครื่องนี้เท่านั้น (เชื่อมชีตด้วยลิงก์ ?api=)', 4500);
+    }
+  },
+
+  renderRules() {
+    const c = State.config;
+    $('rules-card').innerHTML =
+      '📜 <b>กติกาคะแนนปัจจุบัน</b> (ครูปรับได้ในชีต Config)<br>' +
+      '🎯 โดนเป้า +' + c.hit_points + ' | 🟡 กลางเป้า +' + c.bullseye_bonus +
+      ' | 🔫 กระสุน ' + c.ammo_per_game + ' นัด | 💰 เหลือนัดละ +' + c.unused_ammo_bonus +
+      '<br>📏 วัดระยะเต็ม ' + c.distance_points + ' (คลาดได้ ±' + c.distance_tolerance_m + ' m)' +
+      ' | 🧩 สูตรละ ' + c.formula_points + ' | ⏱ โบนัสเวลาสูงสุด ' + c.time_bonus_max;
+  },
+
+  start() {
+    Fx.ac(); // ปลดล็อกเสียงด้วย user gesture แรก
+    if (State.profile && State.profile.name) this.goHome();
+    else showScreen('setup');
+    // GAS รันในเฟรม -> กล้องโดน Permissions Policy บล็อก: ชวนเปิดเต็มหน้าตั้งแต่ต้น
+    if (CamGate.blocked() && !State.camGateDismissed) this.showCamGate();
+  },
+
+  /* ---------- camera unlock gate ----------
+   * iframe ของ GAS ไม่มีสิทธิ์กล้อง และ URL ชั้นใน (userCodeAppPanel) เปิดตรง ๆ ไม่ได้แล้ว
+   * ทางออก: ครูโฮสต์หน้าเว็บ (dist/index.html) ภายนอก แล้วใส่ URL ในชีต Config ช่อง app_url
+   * ปุ่มปลดล็อกจะพาไปเวอร์ชันนั้น พร้อมแนบ ?api=<exec_url> ให้เชื่อมชีตเดิมอัตโนมัติ
+   */
+  fullAppUrl() {
+    const c = State.config || {};
+    if (!c.app_url) return '';
+    let url = String(c.app_url);
+    if (!url.includes('api=') && c.exec_url) {
+      url += (url.includes('?') ? '&' : '?') + 'api=' + encodeURIComponent(c.exec_url);
+    }
+    return url;
+  },
+  showCamGate() {
+    const full = this.fullAppUrl();
+    $('btn-unlock').style.display = full ? '' : 'none';
+    $('btn-unlock-gap').style.display = full ? '' : 'none';
+    $('cam-gate-desc').innerHTML = full
+      ? 'Google Apps Script รันแอพอยู่ "ในเฟรม" ซึ่งเบราว์เซอร์ไม่ให้ใช้กล้อง<br>กดปุ่มด้านล่างเพื่อไป "เวอร์ชันกล้องเต็มรูปแบบ"<br>(คะแนนบันทึกลงชีตเดียวกันทุกอย่าง)'
+      : 'Google Apps Script รันแอพอยู่ "ในเฟรม" ซึ่งเบราว์เซอร์ไม่ให้ใช้กล้อง<br>ตอนนี้เล่นได้ครบทุกโหมดในแบบฉากจำลอง<br><span class="small">ครูเปิดใช้กล้องเต็มรูปแบบได้ — ดูหัวข้อ "ปลดล็อกกล้อง" ใน README</span>';
+    $('cam-gate').classList.add('show');
+  },
+  dismissCamGate() {
+    $('cam-gate').classList.remove('show');
+    State.camGateDismissed = true;
+    toast('เล่นแบบฉากจำลองได้เลย ทุกโหมดทำงานครบ 🏞️');
+  },
+  openFullTab() {
+    const full = this.fullAppUrl();
+    if (!full) { this.dismissCamGate(); return; }
+    const w = window.open(full, '_blank');
+    if (w) {
+      $('cam-gate').classList.remove('show');
+      toast('ไปเล่นต่อที่แท็บใหม่ได้เลย 🚀', 4000);
+    } else {
+      toast('เบราว์เซอร์บล็อกป๊อปอัพ — อนุญาตป๊อปอัพแล้วกดอีกครั้ง', 4000);
+    }
+  },
+
+  go(name) { showScreen(name); if (name === 'home') this.goHome(); },
+
+  /* ---------- setup / selfie (ข้อ 8) ---------- */
+  async selfieCam() {
+    try {
+      if (CamGate.blocked()) throw Object.assign(new Error('blocked by permissions policy'), { name: 'SecurityError' });
+      this.selfieStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width: { ideal: 640 } }, audio: false
+      });
+      const v = $('selfie-video');
+      v.srcObject = this.selfieStream;
+      v.style.display = '';
+      $('selfie-img').style.display = 'none';
+      $('selfie-ph').style.display = 'none';
+      $('btn-snap').disabled = false;
+    } catch (e) {
+      if (CamGate.looksLikePolicyError(e)) this.showCamGate();
+      else toast('เปิดกล้องหน้าไม่ได้ — ใช้อวาตาร์แทนได้เลย 🧑‍🔬');
+    }
+  },
+
+  selfieSnap() {
+    const v = $('selfie-video'), cv = $('selfie-canvas'), cx = cv.getContext('2d');
+    if (!v.videoWidth) return;
+    // crop กลางภาพเป็นสี่เหลี่ยมจัตุรัส
+    const s = Math.min(v.videoWidth, v.videoHeight);
+    cx.save();
+    cx.translate(128, 0); cx.scale(-1, 1); // mirror ให้เหมือนกระจก
+    cx.drawImage(v, (v.videoWidth - s) / 2, (v.videoHeight - s) / 2, s, s, 0, 0, 128, 128);
+    cx.restore();
+    const url = cv.toDataURL('image/jpeg', 0.72);
+    const im = $('selfie-img');
+    im.src = url; im.style.display = '';
+    v.style.display = 'none';
+    this.stopSelfie();
+    $('btn-snap').disabled = true;
+    Fx.good();
+    toast('ได้ภาพแล้ว! หน้านี้จะกลายเป็นกระสุน 🚀');
+  },
+
+  stopSelfie() {
+    if (this.selfieStream) { this.selfieStream.getTracks().forEach(t => t.stop()); this.selfieStream = null; }
+  },
+
+  async saveProfile() {
+    const name = $('in-name').value.trim();
+    if (!name) { toast('ตั้งชื่อผู้เล่นก่อนนะ ✏️'); return; }
+    const photo = $('selfie-img').style.display !== 'none' ? $('selfie-img').src
+                : (State.profile && State.profile.photo) || '';
+    const p = {
+      id: (State.profile && State.profile.id) || uuid(),
+      name, team: $('in-team').value.trim(), photo
+    };
+    saveProfileLocal(p);
+    this.stopSelfie();
+    this.goHome();
+    toast('ยินดีต้อนรับ นักฟิสิกส์ ' + name + ' 👩‍🔬');
+    GS.call('registerPlayer', p).catch(() => toast('บันทึกโปรไฟล์ขึ้นชีตไม่สำเร็จ (จะลองใหม่ตอนส่งคะแนน)'));
+  },
+
+  editProfile() {
+    const p = State.profile || {};
+    $('in-name').value = p.name || '';
+    $('in-team').value = p.team || '';
+    if (p.photo) { $('selfie-img').src = p.photo; $('selfie-img').style.display = ''; $('selfie-ph').style.display = 'none'; }
+    showScreen('setup');
+  },
+
+  avatarSrc(p) {
+    if (p && p.photo) return p.photo;
+    // สร้างอวาตาร์ตัวอักษรอัตโนมัติ
+    const cv = document.createElement('canvas'); cv.width = cv.height = 96;
+    const cx = cv.getContext('2d');
+    const g = cx.createLinearGradient(0, 0, 96, 96);
+    g.addColorStop(0, '#22d3ee'); g.addColorStop(1, '#a78bfa');
+    cx.fillStyle = g; cx.fillRect(0, 0, 96, 96);
+    cx.fillStyle = '#fff'; cx.font = 'bold 44px Prompt, sans-serif';
+    cx.textAlign = 'center'; cx.textBaseline = 'middle';
+    cx.fillText((p && p.name ? p.name[0] : '?').toUpperCase(), 48, 52);
+    return cv.toDataURL();
+  },
+
+  goHome() {
+    const p = State.profile;
+    if (!p) { showScreen('setup'); return; }
+    $('home-avatar').src = this.avatarSrc(p);
+    $('home-name').textContent = p.name;
+    $('home-team').textContent = p.team ? '🏳️ ' + p.team : 'ยังไม่มีทีม — แตะเพื่อตั้ง';
+    this.renderRules();
+    showScreen('home');
+  },
+
+  /* ---------- game launchers ---------- */
+  openProjectile() { if (!this.needProfile()) Game.init('projectile'); },
+  openDistance()   { if (!this.needProfile()) Game.init('distance'); },
+  openFormula()    {
+    if (this.needProfile()) return;
+    $('fml-setup').style.display = '';
+    $('fml-game').style.display = 'none';
+    showScreen('formula');
+  },
+  needProfile() {
+    if (!State.profile) { toast('สร้างโปรไฟล์ก่อนนะ'); showScreen('setup'); return true; }
+    return false;
+  },
+
+  exitAr() {
+    Game.destroy();
+    this.stopMatchPolls();
+    this.goHome();
+  },
+
+  /* ---------- matchmaking (ข้อ 3) ---------- */
+  async openMatch() {
+    if (this.needProfile()) return;
+    State.match = null;
+    $('mm-searching').style.display = '';
+    $('mm-found').style.display = 'none';
+    $('mm-status').textContent = 'กำลังสแกนหานักฟิสิกส์คนอื่น…';
+    showScreen('match');
+    try {
+      const p = State.profile;
+      const res = await GS.call('joinQueue', { id: p.id, name: p.name, team: p.team, photo: (p.photo || '').slice(0, 20000) });
+      if (res.status === 'matched') { this.foundMatch(res.match); return; }
+      let ticks = 0;
+      this._mmPoll = setInterval(async () => {
+        ticks++;
+        $('mm-status').textContent = 'กำลังรอคู่แข่ง… (' + (ticks * 3) + 's) เปิดอีกเครื่องแล้วกด "จับคู่แข่งขัน" ได้เลย';
+        try {
+          const r = await GS.call('pollMatch', p.id);
+          if (r.status === 'matched') { this.stopMatchPolls(); this.foundMatch(r.match); }
+        } catch (e) {}
+        if (ticks > 40) { this.cancelMatch(); toast('หมดเวลาค้นหา ลองใหม่อีกครั้งนะ'); }
+      }, 3000);
+    } catch (e) {
+      toast('เชื่อมต่อระบบจับคู่ไม่ได้: ' + e.message);
+      this.go('home');
+    }
+  },
+
+  foundMatch(match) {
+    State.match = match;
+    Fx.matchFound();
+    const me = match.players.find(x => x.id === State.profile.id) || match.players[0];
+    const opp = match.players.find(x => x.id !== State.profile.id) || match.players[1];
+    State.match.opp = opp;
+    $('mm-me-img').src = this.avatarSrc(State.profile);
+    $('mm-me-name').textContent = me.name;
+    $('mm-opp-img').src = opp.photo ? opp.photo : this.avatarSrc(opp);
+    $('mm-opp-name').textContent = opp.name + (opp.team ? ' (' + opp.team + ')' : '');
+    $('mm-searching').style.display = 'none';
+    $('mm-found').style.display = '';
+  },
+
+  cancelMatch() {
+    this.stopMatchPolls();
+    if (State.profile) GS.call('cancelQueue', State.profile.id).catch(() => {});
+    this.go('home');
+  },
+
+  stopMatchPolls() {
+    clearInterval(this._mmPoll); this._mmPoll = null;
+    clearInterval(this._oppPoll); this._oppPoll = null;
+  },
+
+  startMatchGame() {
+    const m = State.match;
+    if (!m) return;
+    Game.init('projectile', { match: { matchId: m.matchId, seed: m.seed } });
+  },
+
+  async finishMatchGame(stats) {
+    stats.matchId = State.match ? State.match.matchId : '';
+    this.showResult(stats, true);
+    try {
+      const r = await GS.call('submitMatchScore', stats.matchId, State.profile.id, stats.score);
+      if (r.opponentScore != null) this.renderVs(stats.score, r.opponentScore);
+      else {
+        $('res-vs').style.display = '';
+        $('res-vs').innerHTML = '⏳ รอคะแนนของ <b>' + (State.match.opp.name) + '</b>…';
+        let tries = 0;
+        this._oppPoll = setInterval(async () => {
+          tries++;
+          try {
+            const rr = await GS.call('pollOpponentScore', stats.matchId, State.profile.id);
+            if (rr.opponentScore != null) { clearInterval(this._oppPoll); this.renderVs(stats.score, rr.opponentScore); }
+          } catch (e) {}
+          if (tries > 24) { clearInterval(this._oppPoll); $('res-vs').innerHTML = '🤷 ไม่ได้รับคะแนนคู่แข่ง (ดูผลได้ในชีต Matches)'; }
+        }, 4000);
+      }
+    } catch (e) { toast('ส่งคะแนนแมตช์ไม่สำเร็จ'); }
+  },
+
+  renderVs(mine, theirs) {
+    const opp = State.match ? State.match.opp.name : 'คู่แข่ง';
+    const win = mine > theirs, draw = mine === theirs;
+    $('res-vs').style.display = '';
+    $('res-vs').innerHTML =
+      '<div style="font-size:1.6rem">' + (draw ? '🤝 เสมอ!' : win ? '🏆 คุณชนะ!' : '💪 คุณแพ้ ไว้แก้มือนะ') + '</div>' +
+      '<div class="dim" style="margin-top:6px">คุณ <b style="color:var(--cyan)">' + mine +
+      '</b> — <b style="color:var(--pink)">' + theirs + '</b> ' + opp + '</div>';
+    if (win) Fx.fanfare();
+  },
+
+  /* ---------- results + save to Sheets (ข้อ 2) ---------- */
+  async showResult(stats, isMatch = false) {
+    const modeName = { projectile: 'ยิงโพรเจกไทล์', distance: 'วัดระยะ AR', formula: 'เรียงสูตรฟิสิกส์' }[stats.mode] || stats.mode;
+    $('res-emoji').textContent = stats.score > 0 ? (stats.accuracy >= 80 ? '🏆' : '🎉') : '😅';
+    $('res-title').innerHTML = 'จบภารกิจ: <span class="grad-text">' + modeName + '</span>';
+    $('res-score').textContent = stats.score;
+    $('res-vs').style.display = 'none';
+
+    const boxes = [];
+    if (stats.mode === 'projectile') {
+      boxes.push(['ยิงโดน', stats.hits + '/' + stats.shots + ' นัด']);
+      boxes.push(['ความแม่นยำ', stats.accuracy + '%']);
+      boxes.push(['กลางเป้า', stats.bullseyes + ' ครั้ง']);
+      boxes.push(['โบนัสกระสุนเหลือ', '+' + stats.unusedBonus]);
+    } else if (stats.mode === 'distance') {
+      boxes.push(['ภารกิจสำเร็จ', stats.hits + '/' + stats.shots]);
+      boxes.push(['คลาดเฉลี่ย', stats.avgErr + ' m']);
+    } else {
+      boxes.push(['ตอบถูก', stats.hits + ' ข้อ']);
+      boxes.push(['เวลา', stats.time + ' s']);
+      boxes.push(['ระดับ', stats.difficulty === 'hard' ? '🔥 ยาก' : '😊 ง่าย']);
+    }
+    $('res-stats').innerHTML = boxes.map(([k, v]) =>
+      '<div class="stat-box"><div class="v">' + v + '</div><div class="k">' + k + '</div></div>').join('');
+
+    $('res-again').onclick = () => {
+      if (stats.mode === 'projectile' && !isMatch) App.openProjectile();
+      else if (stats.mode === 'projectile') App.openMatch();
+      else if (stats.mode === 'distance') App.openDistance();
+      else App.openFormula();
+    };
+    showScreen('result');
+
+    // บันทึกสถิติลง Google Sheets
+    $('res-saving').textContent = '📊 กำลังบันทึกสถิติลง Google Sheets…';
+    const p = State.profile;
+    try {
+      await GS.call('submitScore', {
+        playerId: p.id, name: p.name, team: p.team || '',
+        mode: stats.mode, difficulty: stats.difficulty || (isMatch ? 'match' : 'normal'),
+        score: stats.score, hits: stats.hits, shots: stats.shots,
+        accuracy: stats.accuracy, matchId: stats.matchId || '',
+        details: stats
+      });
+      $('res-saving').textContent = '✅ บันทึกสถิติลง Google Sheets เรียบร้อย';
+    } catch (e) {
+      $('res-saving').textContent = '⚠️ บันทึกไม่สำเร็จ — คะแนนยังอยู่ในเครื่อง';
+    }
+  },
+
+  /* ---------- leaderboard ---------- */
+  async openLeaderboard() {
+    showScreen('leaderboard');
+    $('lb-list').innerHTML = '<div class="dim" style="text-align:center; padding:24px;">กำลังโหลด…</div>';
+    try {
+      this.lbData = await GS.call('getLeaderboard', 15);
+      this.renderLb('players');
+    } catch (e) {
+      $('lb-list').innerHTML = '<div class="dim" style="text-align:center; padding:24px;">โหลดไม่สำเร็จ 😢</div>';
+    }
+  },
+
+  lbTab(el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    this.renderLb(el.dataset.t);
+    Fx.tick();
+  },
+
+  renderLb(tab) {
+    if (!this.lbData) return;
+    const rows = this.lbData[tab] || [];
+    if (!rows.length) {
+      $('lb-list').innerHTML = '<div class="dim" style="text-align:center; padding:24px;">ยังไม่มีข้อมูล — ไปเล่นเกมแรกกันเลย! 🚀</div>';
+      return;
+    }
+    const medal = i => i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
+    $('lb-list').innerHTML = rows.map((r, i) => {
+      const rankCls = 'lb-rank' + (i < 3 ? ' r' + (i + 1) : '');
+      if (tab === 'players') return '<div class="lb-row"><div class="' + rankCls + '">' + medal(i) + '</div>' +
+        '<div class="lb-name">' + esc(r.name) + '<span class="t">' + esc(r.team || '—') + ' • ' + r.games + ' เกม • สูงสุด ' + r.best + '</span></div>' +
+        '<div class="lb-score">' + r.total + '</div></div>';
+      if (tab === 'teams') return '<div class="lb-row"><div class="' + rankCls + '">' + medal(i) + '</div>' +
+        '<div class="lb-name">🏳️ ' + esc(r.team) + '<span class="t">' + r.games + ' เกม</span></div>' +
+        '<div class="lb-score">' + r.total + '</div></div>';
+      return '<div class="lb-row"><div class="' + rankCls + '">' + medal(i) + '</div>' +
+        '<div class="lb-name">' + esc(r.name) + '<span class="t">' + esc(r.team || '—') + ' • ' + modeIcon(r.mode) + '</span></div>' +
+        '<div class="lb-score">' + r.score + '</div></div>';
+    }).join('');
+  }
+};
+
+function esc(s) { return String(s ?? '').replace(/[<>&"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c])); }
+function modeIcon(m) { return { projectile: '🎯 โพรเจกไทล์', distance: '📏 วัดระยะ', formula: '🧩 สูตร' }[m] || m; }
+
+document.addEventListener('DOMContentLoaded', () => App.boot());
+</script>
+
+</body>
+</html>
